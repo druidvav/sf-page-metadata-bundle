@@ -1,0 +1,19 @@
+{
+  "name": "druidvav/page-metadata-bundle",
+  "type": "symfony-bundle",
+  "license": "MIT",
+  "description": "",
+  "autoload": {
+    "psr-4": { "": "src/" }
+  },
+  "require": {
+    "php": ">=5.6.0",
+    "symfony/framework-bundle": "~3.0",
+    "meniam/autotext": "~1.0"
+  },
+  "require-dev": {
+    "symfony/monolog-bundle": "*",
+    "symfony/templating": "*",
+    "symfony/translation": "*"
+  }
+}
