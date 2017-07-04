@@ -9,7 +9,7 @@
   "require": {
     "php": ">=5.6.0",
     "symfony/framework-bundle": "~3.0",
-    "meniam/autotext": "~1.0"
+    "meniam/autotext": "^2.0"
   },
   "require-dev": {
     "symfony/monolog-bundle": "*",
