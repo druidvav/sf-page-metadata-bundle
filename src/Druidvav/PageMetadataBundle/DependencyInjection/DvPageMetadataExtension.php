@@ -47,7 +47,7 @@ class DvPageMetadataExtension extends Extension
         if (!empty($config['meta']['keywords'])) {
             $optionDef->addMethodCall('setMetaKeywords', [ $config['meta']['keywords'] ]);
         }
-        $container->setPublic(true);
+        $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
     }
 }
