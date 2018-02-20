@@ -85,7 +85,7 @@ class PageMetadata
     {
         $bc = new Breadcrumb($this->router, $this->translator);
         $bc
-            ->setRawText($this->translator->trans($id, $translationParameters, $this->transDomain))
+            ->setRawText($this->transIfId($id, $translationParameters, $this->transDomain))
             ->setUrl($this->router->generate($route, $parameters, $referenceType));
         $this->addBreadcrumb($bc);
         return $this;
@@ -98,7 +98,7 @@ class PageMetadata
 
     public function setTitleAutotext($title, $parameters = [ ], $autotextId = null)
     {
-        $title = $this->translator->trans($title, $parameters, $this->transDomain);
+        $title = $this->transIfId($title, $parameters, $this->transDomain);
         $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
         $title = TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
         $title = trim(preg_replace('#[\s]+#si', ' ', $title));
@@ -114,7 +114,7 @@ class PageMetadata
      */
     public function addTitle($text, $parameters = [ ], $mode = self::MODE_PREPEND)
     {
-        $translated = $this->translator->trans($text, $parameters, $this->transDomain);
+        $translated = $this->transIfId($text, $parameters, $this->transDomain);
         switch ($mode) {
             case self::MODE_SET:
                 $this->title = [ $translated ];
@@ -136,14 +136,14 @@ class PageMetadata
 
     public function setMetaDescription($metaDescription, $parameters = [ ])
     {
-        $metaDescription = $this->translator->trans($metaDescription, $parameters, $this->transDomain);
+        $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
         $this->metaDescription = $metaDescription;
         return $this;
     }
 
     public function setMetaDescriptionAutotext($metaDescription, $parameters = [ ], $autotextId = null)
     {
-        $metaDescription = $this->translator->trans($metaDescription, $parameters, $this->transDomain);
+        $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
         $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
         $metaDescription = TextGenerator::factory(' ' . $metaDescription, $textGeneratorOptions)->generate();
         $metaDescription = trim(preg_replace('#[\s]+#si', ' ', $metaDescription));
@@ -159,7 +159,7 @@ class PageMetadata
 
     public function setMetaKeywords($metaKeywords, $parameters = [ ])
     {
-        $metaKeywords = $this->translator->trans($metaKeywords, $parameters, $this->transDomain);
+        $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $metaKeywordsArray = array_map('trim', explode(',', $metaKeywords));
         $metaKeywordsArray = array_unique($metaKeywordsArray);
 
@@ -169,7 +169,7 @@ class PageMetadata
 
     public function setMetaKeywordsAutotext($metaKeywords, $parameters = [ ], $autotextId = null)
     {
-        $metaKeywords = $this->translator->trans($metaKeywords, $parameters, $this->transDomain);
+        $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
         $this->metaKeywords = trim(TextGenerator::factory(' ' . $metaKeywords, $textGeneratorOptions)->generate());
         return $this;
@@ -178,5 +178,14 @@ class PageMetadata
     public function getMetaKeywords()
     {
         return $this->metaKeywords;
+    }
+
+    protected function transIfId($text, array $parameters = [ ], $domain = null)
+    {
+        if (preg_match('/[a-z_\-\\.]/', $text)) {
+            return $this->translator->trans($text, $parameters, $domain ?: $this->transDomain);
+        } else {
+            return $text;
+        }
     }
 }
