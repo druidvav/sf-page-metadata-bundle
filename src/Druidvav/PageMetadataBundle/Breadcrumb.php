@@ -11,20 +11,14 @@ class Breadcrumb
      */
     private $router;
 
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
-
     private $transDomain = null;
 
     protected $url;
     protected $text;
 
-    public function __construct(RouterInterface $router, TranslatorInterface $translator)
+    public function __construct(RouterInterface $router)
     {
         $this->router = $router;
-        $this->translator = $translator;
     }
 
     public function setTransDomain($domain)
@@ -40,12 +34,6 @@ class Breadcrumb
     public function setUrl($url)
     {
         $this->url = $url;
-        return $this;
-    }
-
-    public function setText($text, array $parameters = array(), $domain = null)
-    {
-        $this->text = $this->translator->trans($text, $parameters, $domain ?: $this->transDomain);
         return $this;
     }
 
