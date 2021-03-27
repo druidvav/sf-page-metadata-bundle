@@ -1,0 +1,18 @@
+{% if breadcrumbs|length %}
+    {%- spaceless -%}
+        <ol id="{{ listId }}" class="breadcrumb hidden-print {{ listClass|default('') }}" itemscope itemtype="https://schema.org/BreadcrumbList">
+            {% for b in breadcrumbs %}
+                <li class="breadcrumb-item {% if loop.last %}active{% endif %} {{ itemClass|default('') }}" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                    {% if b.url %}
+                    <a href="{{ b.url }}" itemprop="item"{% if linkRel is defined and linkRel|length %} rel="{{ linkRel }}"{% endif %}>
+                        {% endif %}
+                        <span itemprop="name">{{- b.text -}}</span>
+                        {% if b.url %}
+                    </a>
+                    {% endif %}
+                    <meta itemprop="position" content="{{ loop.index }}" />
+                </li>
+            {% endfor %}
+        </ol>
+    {%- endspaceless -%}
+{% endif %}
