@@ -1,7 +1,7 @@
 <?php
 namespace Druidvav\PageMetadataBundle;
 
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 class Breadcrumb
@@ -26,18 +26,18 @@ class Breadcrumb
         $this->transDomain = $domain;
     }
 
-    public function setRoute($route, array $parameters = array(), $referenceType = RouterInterface::ABSOLUTE_PATH)
+    public function setRoute($route, array $parameters = array(), $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Breadcrumb
     {
         return $this->setUrl($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function setUrl($url)
+    public function setUrl($url): Breadcrumb
     {
         $this->url = $url;
         return $this;
     }
 
-    public function setRawText($text)
+    public function setRawText($text): Breadcrumb
     {
         $this->text = $text;
         return $this;

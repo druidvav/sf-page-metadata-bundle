@@ -27,7 +27,7 @@ class DvPageMetadataExtension extends Extension
      * Loads the configuration in, with any defaults
      *
      * @param array $configs
-     * @param \Symfony\Component\DependencyInjection\ContainerBuilder $container
+     * @param ContainerBuilder $container
      */
     protected function loadConfiguration(array $configs, ContainerBuilder $container)
     {

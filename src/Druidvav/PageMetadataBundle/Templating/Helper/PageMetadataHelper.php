@@ -70,11 +70,11 @@ class PageMetadataHelper extends Helper
     }
 
     /**
-     * @param string $default
+     * @param string|null $default
      *
      * @return string
      */
-    public function metaKeywords($default = null)
+    public function metaKeywords(string $default = null): ?string
     {
         $metaKeywords = $this->page->getMetaKeywords();
         return $metaKeywords ?: $default;
@@ -84,7 +84,7 @@ class PageMetadataHelper extends Helper
      * {@inheritdoc}
      * @codeCoverageIgnore
      */
-    public function getName()
+    public function getName(): string
     {
         return 'rage_page';
     }
