@@ -11,6 +11,14 @@
         <meta property="og:site_name" content="{{ page_og_site_name() }}" />
     {% endif %}
 {% endif %}
+{% if page_og_title() %}
+    <meta property="og:title" content="{{ page_og_title() }}" />
+    <meta name="twitter:title" content="{{ page_og_title() }}" />
+{% endif %}
+{% if page_og_description() %}
+    <meta property="og:description" content="{{ page_og_description() }}" />
+    <meta name="twitter:description" content="{{ page_og_description() }}" />
+{% endif %}
 {% if page_og_image() %}
     <meta property="og:image" content="{{ page_og_image() }}" />
 {% endif %}

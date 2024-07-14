@@ -32,6 +32,8 @@ class PageMetadata
     private bool $ogEnabled = false;
     private ?string $ogType;
     private ?string $ogSiteName;
+    private array $ogTitle = [ ];
+    private ?string $ogDescription;
     private ?string $ogImage;
     private ?string $ogTwitterImage;
     private ?string $ogTwitterSite;
@@ -233,6 +235,11 @@ class PageMetadata
         return $this;
     }
 
+    public function setAllImages(?string $ogImage): PageMetadata
+    {
+        return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
+    }
+
     public function getOgTwitterSite(): ?string
     {
         return $this->ogTwitterSite;
@@ -241,6 +248,54 @@ class PageMetadata
     public function setOgTwitterSite(?string $ogTwitterSite): PageMetadata
     {
         $this->ogTwitterSite = $ogTwitterSite;
+        return $this;
+    }
+
+    public function getOgTitle(): array
+    {
+        return $this->ogTitle;
+    }
+
+    public function getOgTitleAsString(): string
+    {
+        return implode($this->titleDelimiter, $this->ogTitle);
+    }
+
+    public function setOgTitle($text, $parameters = [ ]): PageMetadata
+    {
+        return $this->addOgTitle($text, $parameters, self::MODE_SET);
+    }
+
+    public function addOgTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    {
+        $translated = $this->transIfId($text, $parameters, $this->transDomain);
+        switch ($mode) {
+            case self::MODE_SET:
+                $this->ogTitle = [ $translated ];
+                break;
+            case self::MODE_APPEND:
+                $this->ogTitle[] = $translated;
+                break;
+            case self::MODE_PREPEND:
+                array_unshift($this->ogTitle, $translated);
+                break;
+        }
+        return $this;
+    }
+
+    public function addAllTitles($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    {
+        return $this->addTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
+    }
+
+    public function getOgDescription(): ?string
+    {
+        return $this->ogDescription;
+    }
+
+    public function setOgDescription(?string $ogDescription): PageMetadata
+    {
+        $this->ogDescription = $ogDescription;
         return $this;
     }
 }
