@@ -117,9 +117,9 @@ class PageMetadata
         return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
-    public function setDescription(?string $description, $parameters = [ ]): PageMetadata
+    public function setDescription(?string $description, $parameters = [ ], $transDomain = null): PageMetadata
     {
-        return $this->setMetaDescription($description, $parameters)->setOgDescription($description, $parameters);
+        return $this->setMetaDescription($description, $parameters, $transDomain)->setOgDescription($description, $parameters, $transDomain);
     }
 
     public function setPageTitle($text, $parameters = [ ]): PageMetadata
@@ -149,9 +149,9 @@ class PageMetadata
         return implode($this->titleDelimiter, $this->pageTitle);
     }
 
-    public function setMetaDescription($metaDescription, $parameters = [ ]): PageMetadata
+    public function setMetaDescription($metaDescription, $parameters = [ ], $transDomain = null): PageMetadata
     {
-        $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
+        $metaDescription = $this->transIfId($metaDescription, $parameters, $transDomain ?: $this->transDomain);
         $this->metaDescription = $metaDescription;
         return $this;
     }
@@ -295,9 +295,9 @@ class PageMetadata
         return $this->ogDescription;
     }
 
-    public function setOgDescription(?string $ogDescription, $parameters = [ ]): PageMetadata
+    public function setOgDescription(?string $ogDescription, $parameters = [ ], $transDomain = null): PageMetadata
     {
-        $this->ogDescription = $this->transIfId($ogDescription, $parameters, $this->transDomain);
+        $this->ogDescription = $this->transIfId($ogDescription, $parameters, $transDomain ?: $this->transDomain);
         return $this;
     }
 
