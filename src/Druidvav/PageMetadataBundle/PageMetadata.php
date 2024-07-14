@@ -29,7 +29,6 @@ class PageMetadata
     const MODE_PREPEND = 'prepend';
     const MODE_APPEND = 'append';
 
-    private bool $ogEnabled = false;
     private ?string $ogType = null;
     private ?string $ogSiteName = null;
     private array $ogTitle = [ ];
@@ -178,17 +177,6 @@ class PageMetadata
         } else {
             return $text;
         }
-    }
-
-    public function isOgEnabled(): bool
-    {
-        return $this->ogEnabled;
-    }
-
-    public function setOgEnabled(bool $ogEnabled): PageMetadata
-    {
-        $this->ogEnabled = $ogEnabled;
-        return $this;
     }
 
     public function getOgType(): ?string
