@@ -25,6 +25,7 @@ class PageMetadataExtension extends AbstractExtension
             new TwigFunction("page_meta", [ $this, "renderMeta" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_render_title", [ $this, "renderTitle" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_render_meta_description", [ $this, "renderMetaDescription" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_render_meta_keywords", [ $this, "renderMetaKeywords" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_og_enabled", [ $this->helper->getPage(), "isOgEnabled" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_og_type", [ $this->helper->getPage(), "getOgType" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_og_site_name", [ $this->helper->getPage(), "getOgSiteName" ], [ "is_safe" => [ "html" ] ]),
