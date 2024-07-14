@@ -36,6 +36,7 @@ class PageMetadata
     private ?string $ogImage = null;
     private ?string $ogTwitterImage = null;
     private ?string $ogTwitterSite = null;
+    private ?string $ogTwitterCard = null;
 
     /**
      * @param RouterInterface $router
@@ -102,14 +103,19 @@ class PageMetadata
         return $this->addPageTitle($title, $parameters, self::MODE_SET)->addOgTitle($title, $parameters, self::MODE_SET);
     }
 
+    public function addTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    {
+        return $this->addPageTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
+    }
+
     public function setImage(?string $ogImage): PageMetadata
     {
         return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
-    public function addTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    public function setDescription(?string $description, $parameters = [ ]): PageMetadata
     {
-        return $this->addPageTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
+        return $this->setMetaDescription($description, $parameters)->setOgDescription($description, $parameters);
     }
 
     public function setPageTitle($text, $parameters = [ ]): PageMetadata
@@ -285,9 +291,23 @@ class PageMetadata
         return $this->ogDescription;
     }
 
-    public function setOgDescription(?string $ogDescription): PageMetadata
+    public function setOgDescription(?string $ogDescription, $parameters = [ ]): PageMetadata
     {
-        $this->ogDescription = $ogDescription;
+        $this->ogDescription = $this->transIfId($ogDescription, $parameters, $this->transDomain);
+        return $this;
+    }
+
+    const TWITTER_CARD_SUMMARY = 'summary';
+    const TWITTER_CARD_SUMMARY_LARGE_IMAGE = 'summary_large_image';
+
+    public function getOgTwitterCard(): ?string
+    {
+        return $this->ogTwitterCard;
+    }
+
+    public function setOgTwitterCard(?string $ogTwitterCard): PageMetadata
+    {
+        $this->ogTwitterCard = $ogTwitterCard;
         return $this;
     }
 }

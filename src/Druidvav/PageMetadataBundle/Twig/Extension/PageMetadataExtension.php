@@ -33,6 +33,7 @@ class PageMetadataExtension extends AbstractExtension
             new TwigFunction("page_og_description", [ $this->helper->getPage(), "getOgDescription" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_twitter_image", [ $this->helper->getPage(), "getOgTwitterImage" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_twitter_site", [ $this->helper->getPage(), "getOgTwitterSite" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_twitter_card", [ $this->helper->getPage(), "getOgTwitterCard" ], [ "is_safe" => [ "html" ] ]),
         ];
     }
 

@@ -23,6 +23,9 @@
     <meta property="og:type" content="{{ page_og_type() }}" />
     <meta property="og:site_name" content="{{ page_og_site_name() }}" />
 {% endif %}
+{% if page_twitter_card() %}
+    <meta name="twitter:card" content="{{ page_twitter_card() }}" />
+{% endif %}
 {% if page_twitter_site() %}
     <meta name="twitter:site" content="{{ page_twitter_site() }}" />
 {% endif %}
