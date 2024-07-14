@@ -1,53 +1,59 @@
 <?php
 namespace Druidvav\PageMetadataBundle\DependencyInjection;
 
+use Druidvav\PageMetadataBundle\PageMetadata;
+use Druidvav\PageMetadataBundle\Templating\Helper\PageMetadataHelper;
+use Druidvav\PageMetadataBundle\Twig\Extension\PageMetadataExtension;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class DvPageMetadataExtension extends Extension
 {
-    /**
-     * @param  array            $configs
-     * @param  ContainerBuilder $container
-     * @return void
-     */
     public function load(array $configs, ContainerBuilder $container)
     {
         $this->loadConfiguration($configs, $container);
-
-        $loader = new YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.yml');
     }
 
-    /**
-     * Loads the configuration in, with any defaults
-     *
-     * @param array $configs
-     * @param ContainerBuilder $container
-     */
     protected function loadConfiguration(array $configs, ContainerBuilder $container)
     {
         $config = $this->processConfiguration(new DvPageMetadataConfiguration(), $configs);
         $container->setParameter('page_metadata.options', $config);
 
-        $optionDef = new Definition('Druidvav\PageMetadataBundle\PageMetadata');
+        $optionDef = new Definition(PageMetadata::class);
         $optionDef->addArgument(new Reference('router'));
         $optionDef->addArgument(new Reference('translator'));
         if (!empty($config['title']['default'])) {
             $optionDef->addMethodCall('setTitle', [ $config['title']['default'] ]);
         }
-        $optionDef->addMethodCall('setTitleDelimeter', [ $config['title']['delimeter'] ]);
+        $optionDef->addMethodCall('setTitleDelimiter', [ $config['title']['delimiter'] ]);
         if (!empty($config['meta']['description'])) {
             $optionDef->addMethodCall('setMetaDescription', [ $config['meta']['description'] ]);
         }
         if (!empty($config['meta']['keywords'])) {
             $optionDef->addMethodCall('setMetaKeywords', [ $config['meta']['keywords'] ]);
         }
+        if (!empty($config['opengraph']['type'])) {
+            $optionDef->addMethodCall('setOgEnabled', [ true ]);
+            $optionDef->addMethodCall('setOgType', [ $config['opengraph']['type'] ]);
+            if (!empty($config['opengraph']['site_name'])) {
+                $optionDef->addMethodCall('setSiteName', [ $config['opengraph']['site_name'] ]);
+            }
+        }
         $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
+
+        $optionDef = new Definition(PageMetadataHelper::class);
+        $optionDef->addArgument(new Reference('page_metadata'));
+        $optionDef->addArgument(new Reference('templating'));
+        $optionDef->addArgument($config);
+        $optionDef->addTag('templating.helper', [ 'alias' => 'page_metadata' ]);
+        $container->setDefinition(PageMetadataHelper::class, $optionDef);
+
+        $optionDef = new Definition(PageMetadataExtension::class);
+        $optionDef->addArgument(new Reference(PageMetadataHelper::class));
+        $optionDef->addTag('twig.extension');
+        $container->setDefinition(PageMetadataExtension::class, $optionDef);
     }
 }

@@ -6,11 +6,6 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 class DvPageMetadataConfiguration implements ConfigurationInterface
 {
-    /**
-     * Generates the configuration tree builder.
-     *
-     * @return TreeBuilder The tree builder
-     */
     public function getConfigTreeBuilder(): TreeBuilder
     {
         if (method_exists('TreeBuilder', 'getRootNode')) {
@@ -31,13 +26,13 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                         scalarNode("linkRel")->defaultValue("")->end()->
                         scalarNode("locale")->defaultNull()->end()->
                         scalarNode("translation_domain")->defaultNull()->end()->
-                        scalarNode("viewTemplate")->defaultValue("DvPageMetadataBundle::breadcrumbs/bootstrap3.html.twig")->end()->
+                        scalarNode("viewTemplate")->defaultValue("DvPageMetadataBundle::breadcrumbs/bootstrap.html.twig")->end()->
                     end()->
                 end()->
                 arrayNode('title')->
                     children()->
                         scalarNode("default")->defaultNull()->end()->
-                        scalarNode("delimeter")->defaultValue(' - ')->end()->
+                        scalarNode("delimiter")->defaultValue(' - ')->end()->
                         scalarNode("locale")->defaultNull()->end()->
                         scalarNode("translation_domain")->defaultNull()->end()->
                     end()->
@@ -46,6 +41,12 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                     children()->
                         scalarNode("description")->defaultNull()->end()->
                         scalarNode("keywords")->defaultNull()->end()->
+                    end()->
+                end()->
+                arrayNode('opengraph')->
+                    children()->
+                        scalarNode("site_name")->defaultNull()->end()->
+                        scalarNode("type")->defaultNull()->end()->
                     end()->
                 end()->
             end()

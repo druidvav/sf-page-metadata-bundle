@@ -1,6 +1,7 @@
 <?php
 namespace Druidvav\PageMetadataBundle;
 
+use InvalidArgumentException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -11,8 +12,11 @@ class PageMetadata
 {
     private $transDomain = null;
 
+    private RouterInterface $router;
+    private TranslatorInterface $translator;
+
     private $title = [ ];
-    private $titleDelimeter;
+    private $titleDelimiter;
 
     private $metaDescription;
     private $metaKeywords;
@@ -26,9 +30,9 @@ class PageMetadata
     const MODE_PREPEND = 'prepend';
     const MODE_APPEND = 'append';
 
-    private RouterInterface $router;
-
-    private TranslatorInterface $translator;
+    private bool $ogEnabled = false;
+    private ?string $ogType;
+    private ?string $ogSiteName;
 
     public function __construct(RouterInterface $router, TranslatorInterface $translator)
     {
@@ -41,9 +45,9 @@ class PageMetadata
         $this->transDomain = $domain;
     }
 
-    public function setTitleDelimeter($titleDelimeter)
+    public function setTitleDelimiter($titleDelimiter)
     {
-        $this->titleDelimeter = $titleDelimeter;
+        $this->titleDelimiter = $titleDelimiter;
     }
 
     protected function addBreadcrumb(Breadcrumb $bc): PageMetadata
@@ -59,9 +63,8 @@ class PageMetadata
 
     public function getNsBreadcrumbs($namespace = self::DEFAULT_NAMESPACE): array
     {
-        // Check whether requested namespace breadcrumbs is exists
         if (!isset($this->breadcrumbs[$namespace])) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'The breadcrumb namespace "%s" does not exist', $namespace
             ));
         }
@@ -112,7 +115,7 @@ class PageMetadata
 
     public function getTitleAsString(): string
     {
-        return implode($this->titleDelimeter, $this->title);
+        return implode($this->titleDelimiter, $this->title);
     }
 
     public function setMetaDescription($metaDescription, $parameters = [ ]): PageMetadata
@@ -167,5 +170,38 @@ class PageMetadata
         } else {
             return $text;
         }
+    }
+
+    public function isOgEnabled(): bool
+    {
+        return $this->ogEnabled;
+    }
+
+    public function setOgEnabled(bool $ogEnabled): PageMetadata
+    {
+        $this->ogEnabled = $ogEnabled;
+        return $this;
+    }
+
+    public function getOgType(): ?string
+    {
+        return $this->ogType;
+    }
+
+    public function setOgType(?string $ogType): PageMetadata
+    {
+        $this->ogType = $ogType;
+        return $this;
+    }
+
+    public function getOgSiteName(): ?string
+    {
+        return $this->ogSiteName;
+    }
+
+    public function setOgSiteName(?string $ogSiteName, $parameters = [ ]): PageMetadata
+    {
+        $this->ogSiteName = $this->transIfId($ogSiteName, $parameters, $this->transDomain);
+        return $this;
     }
 }

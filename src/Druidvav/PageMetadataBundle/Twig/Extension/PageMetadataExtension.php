@@ -16,29 +16,32 @@ class PageMetadataExtension extends AbstractExtension
 
     /**
      * {@inheritdoc}
+     * @noinspection FirstClassCallable
      */
     public function getFunctions(): array
     {
-        return array(
-            new TwigFunction("page_breadcrumbs", array($this, "renderBreadcrumbs"), array("is_safe" => array("html"))),
-            new TwigFunction("page_render_title", array($this, "renderTitle"), array("is_safe" => array("html"))),
-            new TwigFunction("page_render_meta", array($this, "renderMeta"), array("is_safe" => array("html"))),
-            new TwigFunction("page_render_meta_description", array($this, "renderMetaDescription"), array("is_safe" => array("html"))),
-            new TwigFunction("page_render_meta_keywords", array($this, "renderMetaKeywords"), array("is_safe" => array("html"))),
-        );
+        return [ 
+            new TwigFunction("page_breadcrumbs", [ $this, "renderBreadcrumbs" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_meta", [ $this, "renderMeta" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_render_title", [ $this, "renderTitle" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_render_meta_description", [ $this, "renderMetaDescription" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_og_enabled", [ $this->helper->getPage(), "isOgEnabled" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_og_type", [ $this->helper->getPage(), "getOgType" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_og_site_name", [ $this->helper->getPage(), "getOgSiteName" ], [ "is_safe" => [ "html" ] ]),
+        ];
     }
 
-    public function renderBreadcrumbs(array $options = array()): string
+    public function renderBreadcrumbs(array $options = [ ]): string
     {
         return $this->helper->breadcrumbs($options);
     }
 
-    public function renderTitle(array $options = array()): string
+    public function renderTitle(array $options = [ ]): string
     {
         return $this->helper->title($options);
     }
 
-    public function renderMeta()
+    public function renderMeta(): string
     {
         return $this->helper->meta();
     }
