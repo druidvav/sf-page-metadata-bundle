@@ -30,13 +30,13 @@ class PageMetadata
     const MODE_APPEND = 'append';
 
     private bool $ogEnabled = false;
-    private ?string $ogType;
-    private ?string $ogSiteName;
+    private ?string $ogType = null;
+    private ?string $ogSiteName = null;
     private array $ogTitle = [ ];
-    private ?string $ogDescription;
-    private ?string $ogImage;
-    private ?string $ogTwitterImage;
-    private ?string $ogTwitterSite;
+    private ?string $ogDescription = null;
+    private ?string $ogImage = null;
+    private ?string $ogTwitterImage = null;
+    private ?string $ogTwitterSite = null;
 
     /**
      * @param RouterInterface $router
@@ -281,6 +281,11 @@ class PageMetadata
                 break;
         }
         return $this;
+    }
+
+    public function setAllTitles($text, $parameters = [ ]): PageMetadata
+    {
+        return $this->addTitle($text, $parameters, self::MODE_SET)->addOgTitle($text, $parameters, self::MODE_SET);
     }
 
     public function addAllTitles($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
