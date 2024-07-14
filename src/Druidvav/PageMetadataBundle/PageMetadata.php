@@ -196,7 +196,7 @@ class PageMetadata
 
     protected function transIfId($text, array $parameters = [ ], $domain = null)
     {
-        if (preg_match('/^[a-z_\-.]+$/', $text) || strpos($text, '%') !== false) {
+        if (preg_match('/^[a-z0-9_\-.]+$/', $text) || strpos($text, '%') !== false) {
             return $this->translator->trans($text, $parameters, $domain ?: $this->transDomain);
         } else {
             return $text;
