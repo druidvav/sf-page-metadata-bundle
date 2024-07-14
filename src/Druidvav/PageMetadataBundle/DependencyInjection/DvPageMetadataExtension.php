@@ -25,7 +25,7 @@ class DvPageMetadataExtension extends Extension
         $optionDef->addArgument(new Reference('router'));
         $optionDef->addArgument(new Reference('translator'));
         if (!empty($config['title']['default'])) {
-            $optionDef->addMethodCall('setTitle', [ $config['title']['default'] ]);
+            $optionDef->addMethodCall('setPageTitle', [ $config['title']['default'] ]);
         }
         $optionDef->addMethodCall('setTitleDelimiter', [ $config['title']['delimiter'] ]);
         if (!empty($config['meta']['description'])) {
