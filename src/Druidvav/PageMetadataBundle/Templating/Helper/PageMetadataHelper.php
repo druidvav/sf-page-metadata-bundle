@@ -33,11 +33,6 @@ class PageMetadataHelper extends Helper
         return $this->templating->render($options['viewTemplate'], $options);
     }
 
-    public function title(array $options = [ ]): string
-    {
-        return $this->page->getTitleAsString();
-    }
-
     public function meta(array $options = [ ]): string
     {
         return $this->templating->render('@DvPageMetadata/meta.html.twig', $options);

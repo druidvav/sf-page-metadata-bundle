@@ -14,11 +14,7 @@ class PageMetadata
     private RouterInterface $router;
     private $translator;
 
-    private $title = [ ];
     private $titleDelimiter;
-
-    private $metaDescription;
-    private $metaKeywords;
 
     const DEFAULT_NAMESPACE = "default";
     private $breadcrumbs = [
@@ -28,6 +24,10 @@ class PageMetadata
     const MODE_SET = 'set';
     const MODE_PREPEND = 'prepend';
     const MODE_APPEND = 'append';
+
+    private array $pageTitle = [ ];
+    private ?string $metaDescription = null;
+    private ?string $metaKeywords = null;
 
     private ?string $ogType = null;
     private ?string $ogSiteName = null;
@@ -90,7 +90,7 @@ class PageMetadata
 
     public function setTitle($text, $parameters = [ ]): PageMetadata
     {
-        return $this->addTitle($text, $parameters, self::MODE_SET);
+        return $this->addPageTitle($text, $parameters, self::MODE_SET)->addOgTitle($text, $parameters, self::MODE_SET);
     }
 
     public function setTitleAutotext($title, $parameters = [ ], $autotextId = null): PageMetadata
@@ -99,30 +99,44 @@ class PageMetadata
         $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
         $title = TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
         $title = trim(preg_replace('#[\s]+#si', ' ', $title));
-        $this->title = [$title];
-        return $this;
+        return $this->addPageTitle($title, $parameters, self::MODE_SET)->addOgTitle($title, $parameters, self::MODE_SET);
+    }
+
+    public function setImage(?string $ogImage): PageMetadata
+    {
+        return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
     public function addTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
     {
+        return $this->addPageTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
+    }
+
+    public function setPageTitle($text, $parameters = [ ]): PageMetadata
+    {
+        return $this->addPageTitle($text, $parameters, self::MODE_SET);
+    }
+
+    public function addPageTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    {
         $translated = $this->transIfId($text, $parameters, $this->transDomain);
         switch ($mode) {
             case self::MODE_SET:
-                $this->title = [ $translated ];
+                $this->pageTitle = [ $translated ];
                 break;
             case self::MODE_APPEND:
-                $this->title[] = $translated;
+                $this->pageTitle[] = $translated;
                 break;
             case self::MODE_PREPEND:
-                array_unshift($this->title, $translated);
+                array_unshift($this->pageTitle, $translated);
                 break;
         }
         return $this;
     }
 
-    public function getTitleAsString(): string
+    public function getPageTitleAsString(): string
     {
-        return implode($this->titleDelimiter, $this->title);
+        return implode($this->titleDelimiter, $this->pageTitle);
     }
 
     public function setMetaDescription($metaDescription, $parameters = [ ]): PageMetadata
@@ -143,7 +157,7 @@ class PageMetadata
         return $this;
     }
 
-    public function getMetaDescription()
+    public function getMetaDescription(): ?string
     {
         return $this->metaDescription;
     }
@@ -165,7 +179,7 @@ class PageMetadata
         return $this;
     }
 
-    public function getMetaKeywords()
+    public function getMetaKeywords(): ?string
     {
         return $this->metaKeywords;
     }
@@ -223,11 +237,6 @@ class PageMetadata
         return $this;
     }
 
-    public function setAllImages(?string $ogImage): PageMetadata
-    {
-        return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
-    }
-
     public function getOgTwitterSite(): ?string
     {
         return $this->ogTwitterSite;
@@ -269,16 +278,6 @@ class PageMetadata
                 break;
         }
         return $this;
-    }
-
-    public function setAllTitles($text, $parameters = [ ]): PageMetadata
-    {
-        return $this->addTitle($text, $parameters, self::MODE_SET)->addOgTitle($text, $parameters, self::MODE_SET);
-    }
-
-    public function addAllTitles($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
-    {
-        return $this->addTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
     }
 
     public function getOgDescription(): ?string
