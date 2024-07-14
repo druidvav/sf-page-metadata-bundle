@@ -29,11 +29,15 @@ class PageMetadata
     private ?string $metaDescription = null;
     private ?string $metaKeywords = null;
 
+    private ?string $linkCanonical = null;
+    private ?string $linkCanonicalLang = null;
+
     private ?string $ogType = null;
     private ?string $ogSiteName = null;
     private array $ogTitle = [ ];
     private ?string $ogDescription = null;
     private ?string $ogImage = null;
+    private ?string $ogUrl = null;
     private ?string $ogTwitterImage = null;
     private ?string $ogTwitterSite = null;
     private ?string $ogTwitterCard = null;
@@ -308,6 +312,39 @@ class PageMetadata
     public function setOgTwitterCard(?string $ogTwitterCard): PageMetadata
     {
         $this->ogTwitterCard = $ogTwitterCard;
+        return $this;
+    }
+
+    public function getOgUrl(): ?string
+    {
+        return $this->ogUrl;
+    }
+
+    public function setOgUrl(?string $ogUrl): PageMetadata
+    {
+        $this->ogUrl = $ogUrl;
+        return $this;
+    }
+
+    public function getLinkCanonical(): ?string
+    {
+        return $this->linkCanonical;
+    }
+
+    public function setLinkCanonical(?string $linkCanonical): PageMetadata
+    {
+        $this->linkCanonical = $linkCanonical;
+        return $this;
+    }
+
+    public function getLinkCanonicalLang(): ?string
+    {
+        return $this->linkCanonicalLang;
+    }
+
+    public function setLinkCanonicalLang(?string $linkCanonicalLang): PageMetadata
+    {
+        $this->linkCanonicalLang = $linkCanonicalLang;
         return $this;
     }
 }
