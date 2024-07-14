@@ -4,7 +4,6 @@ namespace Druidvav\PageMetadataBundle;
 use InvalidArgumentException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 use TextGenerator\Part;
 use TextGenerator\TextGenerator;
 
@@ -13,7 +12,7 @@ class PageMetadata
     private $transDomain = null;
 
     private RouterInterface $router;
-    private TranslatorInterface $translator;
+    private $translator;
 
     private $title = [ ];
     private $titleDelimiter;
@@ -34,7 +33,11 @@ class PageMetadata
     private ?string $ogType;
     private ?string $ogSiteName;
 
-    public function __construct(RouterInterface $router, TranslatorInterface $translator)
+    /**
+     * @param RouterInterface $router
+     * @param \Symfony\Component\Translation\TranslatorInterface|\Symfony\Contract\Translation\TranslatorInterface $translator
+     */
+    public function __construct(RouterInterface $router, $translator)
     {
         $this->router = $router;
         $this->translator = $translator;
@@ -71,7 +74,7 @@ class PageMetadata
         return $this->breadcrumbs[$namespace];
     }
 
-    public function addRouteItem($id, $route, array $parameters = array(), $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = array()): PageMetadata
+    public function addRouteItem($id, $route, array $parameters = [ ], $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
     {
         $bc = new Breadcrumb($this->router);
         $bc
@@ -89,7 +92,7 @@ class PageMetadata
     public function setTitleAutotext($title, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $title = $this->transIfId($title, $parameters, $this->transDomain);
-        $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
+        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
         $title = TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
         $title = trim(preg_replace('#[\s]+#si', ' ', $title));
         $this->title = [$title];
@@ -128,7 +131,7 @@ class PageMetadata
     public function setMetaDescriptionAutotext($metaDescription, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
-        $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
+        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
         $metaDescription = TextGenerator::factory(' ' . $metaDescription, $textGeneratorOptions)->generate();
         $metaDescription = trim(preg_replace('#[\s]+#si', ' ', $metaDescription));
 
@@ -153,7 +156,7 @@ class PageMetadata
     public function setMetaKeywordsAutotext($metaKeywords, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
-        $textGeneratorOptions = array(Part::OPTION_GENERATE_HASH => $autotextId);
+        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
         $this->metaKeywords = trim(TextGenerator::factory(' ' . $metaKeywords, $textGeneratorOptions)->generate());
         return $this;
     }

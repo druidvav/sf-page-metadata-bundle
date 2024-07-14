@@ -34,12 +34,10 @@ class DvPageMetadataExtension extends Extension
         if (!empty($config['meta']['keywords'])) {
             $optionDef->addMethodCall('setMetaKeywords', [ $config['meta']['keywords'] ]);
         }
-        if (!empty($config['opengraph']['type'])) {
+        if (!empty($config['opengraph']['site_name'])) {
             $optionDef->addMethodCall('setOgEnabled', [ true ]);
             $optionDef->addMethodCall('setOgType', [ $config['opengraph']['type'] ]);
-            if (!empty($config['opengraph']['site_name'])) {
-                $optionDef->addMethodCall('setSiteName', [ $config['opengraph']['site_name'] ]);
-            }
+            $optionDef->addMethodCall('setSiteName', [ $config['opengraph']['site_name'] ]);
         }
         $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
