@@ -47,6 +47,9 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                     children()->
                         scalarNode("site_name")->defaultNull()->end()->
                         scalarNode("type")->defaultNull()->end()->
+                        scalarNode("image")->defaultNull()->end()->
+                        scalarNode("twitter_image")->defaultNull()->end()->
+                        scalarNode("twitter_site")->defaultNull()->end()->
                     end()->
                 end()->
             end()

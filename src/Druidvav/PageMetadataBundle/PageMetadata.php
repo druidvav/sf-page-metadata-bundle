@@ -32,6 +32,9 @@ class PageMetadata
     private bool $ogEnabled = false;
     private ?string $ogType;
     private ?string $ogSiteName;
+    private ?string $ogImage;
+    private ?string $ogTwitterImage;
+    private ?string $ogTwitterSite;
 
     /**
      * @param RouterInterface $router
@@ -205,6 +208,39 @@ class PageMetadata
     public function setOgSiteName(?string $ogSiteName, $parameters = [ ]): PageMetadata
     {
         $this->ogSiteName = $this->transIfId($ogSiteName, $parameters, $this->transDomain);
+        return $this;
+    }
+
+    public function getOgImage(): ?string
+    {
+        return $this->ogImage;
+    }
+
+    public function setOgImage(?string $ogImage): PageMetadata
+    {
+        $this->ogImage = $ogImage;
+        return $this;
+    }
+
+    public function getOgTwitterImage(): ?string
+    {
+        return $this->ogTwitterImage;
+    }
+
+    public function setOgTwitterImage(?string $ogTwitterImage): PageMetadata
+    {
+        $this->ogTwitterImage = $ogTwitterImage;
+        return $this;
+    }
+
+    public function getOgTwitterSite(): ?string
+    {
+        return $this->ogTwitterSite;
+    }
+
+    public function setOgTwitterSite(?string $ogTwitterSite): PageMetadata
+    {
+        $this->ogTwitterSite = $ogTwitterSite;
         return $this;
     }
 }

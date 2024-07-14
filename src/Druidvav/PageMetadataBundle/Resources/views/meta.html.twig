@@ -11,3 +11,12 @@
         <meta property="og:site_name" content="{{ page_og_site_name() }}" />
     {% endif %}
 {% endif %}
+{% if page_og_image() %}
+    <meta property="og:image" content="{{ page_og_image() }}" />
+{% endif %}
+{% if page_twitter_image() %}
+    <meta name="twitter:image" content="{{ page_twitter_image() }}" />
+{% endif %}
+{% if page_twitter_site() %}
+    <meta name="twitter:site" content="{{ page_twitter_site() }}" />
+{% endif %}

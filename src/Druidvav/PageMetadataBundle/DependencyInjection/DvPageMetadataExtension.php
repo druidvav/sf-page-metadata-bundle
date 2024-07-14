@@ -37,7 +37,10 @@ class DvPageMetadataExtension extends Extension
         if (!empty($config['opengraph']['site_name'])) {
             $optionDef->addMethodCall('setOgEnabled', [ true ]);
             $optionDef->addMethodCall('setOgType', [ $config['opengraph']['type'] ]);
-            $optionDef->addMethodCall('setSiteName', [ $config['opengraph']['site_name'] ]);
+            $optionDef->addMethodCall('setOgSiteName', [ $config['opengraph']['site_name'] ]);
+            $optionDef->addMethodCall('setOgImage', [ $config['opengraph']['image'] ]);
+            $optionDef->addMethodCall('setTwitterImage', [ $config['opengraph']['twitter_image'] ]);
+            $optionDef->addMethodCall('setTwitterSite', [ $config['opengraph']['twitter_site'] ]);
         }
         $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
