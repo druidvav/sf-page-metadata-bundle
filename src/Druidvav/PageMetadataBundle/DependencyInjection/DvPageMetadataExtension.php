@@ -34,11 +34,21 @@ class DvPageMetadataExtension extends Extension
         if (!empty($config['meta']['keywords'])) {
             $optionDef->addMethodCall('setMetaKeywords', [ $config['meta']['keywords'] ]);
         }
-        $optionDef->addMethodCall('setOgType', [ $config['opengraph']['type'] ]);
-        $optionDef->addMethodCall('setOgSiteName', [ $config['opengraph']['site_name'] ]);
-        $optionDef->addMethodCall('setOgImage', [ $config['opengraph']['image'] ]);
-        $optionDef->addMethodCall('setOgTwitterImage', [ $config['opengraph']['twitter_image'] ]);
-        $optionDef->addMethodCall('setOgTwitterSite', [ $config['opengraph']['twitter_site'] ]);
+        if (!empty($config['opengraph']['type'])) {
+            $optionDef->addMethodCall('setOgType', [ $config['opengraph']['type'] ]);
+        }
+        if (!empty($config['opengraph']['site_name'])) {
+            $optionDef->addMethodCall('setOgSiteName', [ $config['opengraph']['site_name'] ]);
+        }
+        if (!empty($config['opengraph']['image'])) {
+            $optionDef->addMethodCall('setOgImage', [ $config['opengraph']['image'] ]);
+        }
+        if (!empty($config['opengraph']['twitter_image'])) {
+            $optionDef->addMethodCall('setOgTwitterImage', [ $config['opengraph']['twitter_image'] ]);
+        }
+        if (!empty($config['opengraph']['twitter_site'])) {
+            $optionDef->addMethodCall('setOgTwitterSite', [$config['opengraph']['twitter_site']]);
+        }
         $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
 
