@@ -1,5 +1,5 @@
 {% if breadcrumbs|length %}
-    {%- spaceless -%}
+    {%- apply spaceless -%}
         <ol id="{{ listId }}" class="breadcrumb hidden-print {{ listClass|default('') }}" itemscope itemtype="https://schema.org/BreadcrumbList">
             {% for b in breadcrumbs %}
                 <li class="{% if loop.last %}active{% endif %} {{ itemClass|default('') }}" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
@@ -14,5 +14,5 @@
                 </li>
             {% endfor %}
         </ol>
-    {%- endspaceless -%}
+    {%- endapply -%}
 {% endif %}
