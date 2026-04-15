@@ -2,7 +2,6 @@
 namespace Druidvav\PageMetadataBundle\DependencyInjection;
 
 use Druidvav\PageMetadataBundle\PageMetadata;
-use Druidvav\PageMetadataBundle\Templating\Helper\PageMetadataHelper;
 use Druidvav\PageMetadataBundle\Twig\Extension\PageMetadataExtension;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -47,21 +46,16 @@ class DvPageMetadataExtension extends Extension
             $optionDef->addMethodCall('setOgTwitterImage', [ $config['opengraph']['twitter_image'] ]);
         }
         if (!empty($config['opengraph']['twitter_site'])) {
-            $optionDef->addMethodCall('setOgTwitterSite', [$config['opengraph']['twitter_site']]);
+            $optionDef->addMethodCall('setOgTwitterSite', [ $config['opengraph']['twitter_site'] ]);
         }
         $optionDef->setPublic(true);
         $container->setDefinition('page_metadata', $optionDef);
 
-        $optionDef = new Definition(PageMetadataHelper::class);
-        $optionDef->addArgument(new Reference('page_metadata'));
-        $optionDef->addArgument(new Reference('templating'));
-        $optionDef->addArgument($config);
-        $optionDef->addTag('templating.helper', [ 'alias' => 'page_metadata' ]);
-        $container->setDefinition(PageMetadataHelper::class, $optionDef);
-
-        $optionDef = new Definition(PageMetadataExtension::class);
-        $optionDef->addArgument(new Reference(PageMetadataHelper::class));
-        $optionDef->addTag('twig.extension');
-        $container->setDefinition(PageMetadataExtension::class, $optionDef);
+        $twigDef = new Definition(PageMetadataExtension::class);
+        $twigDef->addArgument(new Reference('page_metadata'));
+        $twigDef->addArgument(new Reference('twig'));
+        $twigDef->addArgument($config);
+        $twigDef->addTag('twig.extension');
+        $container->setDefinition(PageMetadataExtension::class, $twigDef);
     }
 }
