@@ -49,7 +49,8 @@ class DvPageMetadataExtension extends Extension
             $optionDef->addMethodCall('setOgTwitterSite', [ $config['opengraph']['twitter_site'] ]);
         }
         $optionDef->setPublic(true);
-        $container->setDefinition('page_metadata', $optionDef);
+        $container->setDefinition(PageMetadata::class, $optionDef);
+        $container->setAlias('page_metadata', PageMetadata::class)->setPublic(true);
 
         $twigDef = new Definition(PageMetadataExtension::class);
         $twigDef->addArgument(new Reference('page_metadata'));
