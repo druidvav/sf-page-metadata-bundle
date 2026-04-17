@@ -23,7 +23,7 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                         scalarNode("linkRel")->defaultValue("")->end()->
                         scalarNode("locale")->defaultNull()->end()->
                         scalarNode("translation_domain")->defaultNull()->end()->
-                        scalarNode("viewTemplate")->defaultValue("DvPageMetadataBundle::breadcrumbs/bootstrap.html.twig")->end()->
+                        scalarNode("viewTemplate")->defaultValue("@DvPageMetadata/breadcrumbs/bootstrap.html.twig")->end()->
                     end()->
                 end()->
                 arrayNode('title')->
