@@ -4,6 +4,7 @@ namespace Druidvav\PageMetadataBundle;
 use InvalidArgumentException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use TextGenerator\Part;
 use TextGenerator\TextGenerator;
 
@@ -12,7 +13,7 @@ class PageMetadata
     private $transDomain = null;
 
     private RouterInterface $router;
-    private $translator;
+    private TranslatorInterface $translator;
 
     private $titleDelimiter;
 
@@ -42,11 +43,7 @@ class PageMetadata
     private ?string $ogTwitterSite = null;
     private ?string $ogTwitterCard = null;
 
-    /**
-     * @param RouterInterface $router
-     * @param \Symfony\Component\Translation\TranslatorInterface|\Symfony\Contract\Translation\TranslatorInterface $translator
-     */
-    public function __construct(RouterInterface $router, $translator)
+    public function __construct(RouterInterface $router, TranslatorInterface $translator)
     {
         $this->router = $router;
         $this->translator = $translator;
@@ -83,8 +80,12 @@ class PageMetadata
         return $this->breadcrumbs[$namespace];
     }
 
-    public function addRouteItem($id, $route, array $parameters = [ ], $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
+    public function addRouteItem($id, $route, array $parameters = [ ], ?int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
     {
+        if ($referenceType === null) {
+            $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
+        }
+
         $bc = new Breadcrumb($this->router);
         $bc
             ->setRawText($this->transIfId($id, $translationParameters, $this->transDomain))

@@ -8,13 +8,13 @@
   },
   "require": {
     "php": ">=7.4.0",
-    "symfony/framework-bundle": "^3.4 || ^4.4 || ^5.0 || ^6.0",
-    "symfony/twig-bundle": "^3.4 || ^4.4 || ^5.0 || ^6.0",
+    "symfony/framework-bundle": "^4.4 || ^5.0 || ^6.0",
+    "symfony/twig-bundle": "^4.4 || ^5.0 || ^6.0",
     "twig/twig": "^2.7 || ^3.0",
     "meniam/autotext": "^4.0"
   },
   "require-dev": {
     "symfony/monolog-bundle": "^3.1",
-    "symfony/translation": "^3.4 || ^4.4 || ^5.0 || ^6.0"
+    "symfony/translation": "^4.4 || ^5.0 || ^6.0"
   }
 }
