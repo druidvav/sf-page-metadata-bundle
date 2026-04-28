@@ -5,8 +5,6 @@ use InvalidArgumentException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use TextGenerator\Part;
-use TextGenerator\TextGenerator;
 
 class PageMetadata
 {
@@ -102,9 +100,9 @@ class PageMetadata
     public function setTitleAutotext($title, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $title = $this->transIfId($title, $parameters, $this->transDomain);
-        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
-        $title = TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
-        $title = trim(preg_replace('#[\s]+#si', ' ', $title));
+        $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
+        $title = \TextGenerator\TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
+        $title = trim(preg_replace('#\s+#si', ' ', $title));
         return $this->addPageTitle($title, $parameters, self::MODE_SET)->addOgTitle($title, $parameters, self::MODE_SET);
     }
 
@@ -160,10 +158,9 @@ class PageMetadata
     public function setMetaDescriptionAutotext($metaDescription, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
-        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
-        $metaDescription = TextGenerator::factory(' ' . $metaDescription, $textGeneratorOptions)->generate();
-        $metaDescription = trim(preg_replace('#[\s]+#si', ' ', $metaDescription));
-
+        $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
+        $metaDescription = \TextGenerator\TextGenerator::factory(' ' . $metaDescription, $textGeneratorOptions)->generate();
+        $metaDescription = trim(preg_replace('#\s+#si', ' ', $metaDescription));
         $this->metaDescription = $metaDescription;
         return $this;
     }
@@ -185,8 +182,8 @@ class PageMetadata
     public function setMetaKeywordsAutotext($metaKeywords, $parameters = [ ], $autotextId = null): PageMetadata
     {
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
-        $textGeneratorOptions = [ Part::OPTION_GENERATE_HASH => $autotextId ];
-        $this->metaKeywords = trim(TextGenerator::factory(' ' . $metaKeywords, $textGeneratorOptions)->generate());
+        $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
+        $this->metaKeywords = trim(\TextGenerator\TextGenerator::factory(' ' . $metaKeywords, $textGeneratorOptions)->generate());
         return $this;
     }
 
