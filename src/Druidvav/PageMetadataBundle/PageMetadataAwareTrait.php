@@ -2,13 +2,16 @@
 
 namespace Druidvav\PageMetadataBundle;
 
+use Symfony\Contracts\Service\Attribute\Required;
+
 trait PageMetadataAwareTrait
 {
     protected PageMetadata $pageMetadata;
 
     /**
-     * @required
+     * @Required
      */
+    #[Required]
     public function setPageMetadata(PageMetadata $pageMetadata): void
     {
         $this->pageMetadata = $pageMetadata;
