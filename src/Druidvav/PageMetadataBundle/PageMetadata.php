@@ -78,7 +78,7 @@ class PageMetadata
         return $this->breadcrumbs[$namespace];
     }
 
-    public function addRouteItem($id, string $route, array $parameters = [ ], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
+    public function addRouteItem($id, string $route, array $parameters = [ ], ?int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
     {
         if ($referenceType === null) {
             $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
