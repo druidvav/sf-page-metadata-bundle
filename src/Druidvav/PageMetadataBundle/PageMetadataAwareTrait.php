@@ -9,7 +9,7 @@ trait PageMetadataAwareTrait
     /**
      * @required
      */
-    public function setPageMetadata(PageMetadata $pageMetadata)
+    public function setPageMetadata(PageMetadata $pageMetadata): void
     {
         $this->pageMetadata = $pageMetadata;
     }

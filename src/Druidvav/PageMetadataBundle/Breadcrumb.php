@@ -6,49 +6,46 @@ use Symfony\Component\Routing\RouterInterface;
 
 class Breadcrumb
 {
-    /**
-     * @var RouterInterface
-     */
-    private $router;
+    private RouterInterface $router;
 
-    private $transDomain = null;
+    protected ?string $transDomain = null;
 
-    protected $url;
-    protected $text;
+    protected string $url;
+    protected string $text;
 
     public function __construct(RouterInterface $router)
     {
         $this->router = $router;
     }
 
-    public function setTransDomain($domain)
+    public function setTransDomain(string $domain): void
     {
         $this->transDomain = $domain;
     }
 
-    public function setRoute($route, array $parameters = array(), $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Breadcrumb
+    public function setRoute(string $route, array $parameters = [ ], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Breadcrumb
     {
         return $this->setUrl($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function setUrl($url): Breadcrumb
+    public function setUrl(string $url): Breadcrumb
     {
         $this->url = $url;
         return $this;
     }
 
-    public function setRawText($text): Breadcrumb
+    public function setRawText(string $text): Breadcrumb
     {
         $this->text = $text;
         return $this;
     }
 
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
 
-    public function getText()
+    public function getText(): string
     {
         return $this->text;
     }

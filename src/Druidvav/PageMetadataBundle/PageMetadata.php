@@ -8,15 +8,15 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class PageMetadata
 {
-    private $transDomain = null;
+    private ?string $transDomain = null;
 
     private RouterInterface $router;
     private TranslatorInterface $translator;
 
-    private $titleDelimiter;
+    private ?string $titleDelimiter = null;
 
     const DEFAULT_NAMESPACE = "default";
-    private $breadcrumbs = [
+    private array $breadcrumbs = [
         self::DEFAULT_NAMESPACE => [ ]
     ];
 
@@ -47,12 +47,12 @@ class PageMetadata
         $this->translator = $translator;
     }
 
-    public function setTransDomain($domain)
+    public function setTransDomain(?string $domain): void
     {
         $this->transDomain = $domain;
     }
 
-    public function setTitleDelimiter($titleDelimiter)
+    public function setTitleDelimiter(?string $titleDelimiter): void
     {
         $this->titleDelimiter = $titleDelimiter;
     }
@@ -62,13 +62,13 @@ class PageMetadata
         return $this->addBreadcrumbToNs(self::DEFAULT_NAMESPACE, $bc);
     }
 
-    protected function addBreadcrumbToNs($namespace, Breadcrumb $bc): PageMetadata
+    protected function addBreadcrumbToNs(string $namespace, Breadcrumb $bc): PageMetadata
     {
         $this->breadcrumbs[$namespace][] = $bc;
         return $this;
     }
 
-    public function getNsBreadcrumbs($namespace = self::DEFAULT_NAMESPACE): array
+    public function getNsBreadcrumbs(string $namespace = self::DEFAULT_NAMESPACE): array
     {
         if (!isset($this->breadcrumbs[$namespace])) {
             throw new InvalidArgumentException(sprintf(
@@ -78,7 +78,7 @@ class PageMetadata
         return $this->breadcrumbs[$namespace];
     }
 
-    public function addRouteItem($id, $route, array $parameters = [ ], ?int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
+    public function addRouteItem($id, string $route, array $parameters = [ ], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
     {
         if ($referenceType === null) {
             $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
@@ -92,12 +92,12 @@ class PageMetadata
         return $this;
     }
 
-    public function setTitle($text, $parameters = [ ]): PageMetadata
+    public function setTitle($text, array $parameters = [ ]): PageMetadata
     {
         return $this->addPageTitle($text, $parameters, self::MODE_SET)->addOgTitle($text, $parameters, self::MODE_SET);
     }
 
-    public function setTitleAutotext($title, $parameters = [ ], $autotextId = null): PageMetadata
+    public function setTitleAutotext($title, array $parameters = [ ], ?string $autotextId = null): PageMetadata
     {
         $title = $this->transIfId($title, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
@@ -116,12 +116,12 @@ class PageMetadata
         return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
-    public function setDescription(?string $description, $parameters = [ ], $transDomain = null): PageMetadata
+    public function setDescription(?string $description, $parameters = [ ], ?string $transDomain = null): PageMetadata
     {
         return $this->setMetaDescription($description, $parameters, $transDomain)->setOgDescription($description, $parameters, $transDomain);
     }
 
-    public function setPageTitle($text, $parameters = [ ]): PageMetadata
+    public function setPageTitle($text, array $parameters = [ ]): PageMetadata
     {
         return $this->addPageTitle($text, $parameters, self::MODE_SET);
     }
@@ -148,14 +148,14 @@ class PageMetadata
         return implode($this->titleDelimiter, $this->pageTitle);
     }
 
-    public function setMetaDescription($metaDescription, $parameters = [ ], $transDomain = null): PageMetadata
+    public function setMetaDescription($metaDescription, array $parameters = [ ], ?string $transDomain = null): PageMetadata
     {
         $metaDescription = $this->transIfId($metaDescription, $parameters, $transDomain ?: $this->transDomain);
         $this->metaDescription = $metaDescription;
         return $this;
     }
 
-    public function setMetaDescriptionAutotext($metaDescription, $parameters = [ ], $autotextId = null): PageMetadata
+    public function setMetaDescriptionAutotext($metaDescription, array $parameters = [ ], ?string $autotextId = null): PageMetadata
     {
         $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
@@ -170,7 +170,7 @@ class PageMetadata
         return $this->metaDescription;
     }
 
-    public function setMetaKeywords($metaKeywords, $parameters = [ ]): PageMetadata
+    public function setMetaKeywords($metaKeywords, array $parameters = [ ]): PageMetadata
     {
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $metaKeywordsArray = array_map('trim', explode(',', $metaKeywords));
@@ -179,7 +179,7 @@ class PageMetadata
         return $this;
     }
 
-    public function setMetaKeywordsAutotext($metaKeywords, $parameters = [ ], $autotextId = null): PageMetadata
+    public function setMetaKeywordsAutotext($metaKeywords, array $parameters = [ ], ?string $autotextId = null): PageMetadata
     {
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
@@ -192,13 +192,12 @@ class PageMetadata
         return $this->metaKeywords;
     }
 
-    protected function transIfId($text, array $parameters = [ ], $domain = null)
+    protected function transIfId($text, array $parameters = [ ], ?string $domain = null)
     {
         if (preg_match('/^[a-z0-9_\-.]+$/', $text) || strpos($text, '%') !== false) {
             return $this->translator->trans($text, $parameters, $domain ?: $this->transDomain);
-        } else {
-            return $text;
         }
+        return $text;
     }
 
     public function getOgType(): ?string
@@ -217,7 +216,7 @@ class PageMetadata
         return $this->ogSiteName;
     }
 
-    public function setOgSiteName(?string $ogSiteName, $parameters = [ ]): PageMetadata
+    public function setOgSiteName(?string $ogSiteName, array $parameters = [ ]): PageMetadata
     {
         $this->ogSiteName = $this->transIfId($ogSiteName, $parameters, $this->transDomain);
         return $this;
@@ -266,7 +265,7 @@ class PageMetadata
         return implode($this->titleDelimiter, $this->ogTitle);
     }
 
-    public function setOgTitle($text, $parameters = [ ]): PageMetadata
+    public function setOgTitle($text, array $parameters = [ ]): PageMetadata
     {
         return $this->addOgTitle($text, $parameters, self::MODE_SET);
     }
@@ -293,7 +292,7 @@ class PageMetadata
         return $this->ogDescription;
     }
 
-    public function setOgDescription(?string $ogDescription, $parameters = [ ], $transDomain = null): PageMetadata
+    public function setOgDescription(?string $ogDescription, array $parameters = [ ], ?string $transDomain = null): PageMetadata
     {
         $this->ogDescription = $this->transIfId($ogDescription, $parameters, $transDomain ?: $this->transDomain);
         return $this;

@@ -9,11 +9,7 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder("dv_page_metadata");
-        $rootNode = method_exists($treeBuilder, 'getRootNode')
-            ? $treeBuilder->getRootNode()
-            : $treeBuilder->root("dv_page_metadata");
-
-        $rootNode->
+        $treeBuilder->getRootNode()->
             children()->
                 arrayNode('breadcrumbs')->
                     children()->
