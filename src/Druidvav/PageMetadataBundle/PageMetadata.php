@@ -116,7 +116,7 @@ class PageMetadata
         return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
-    public function setDescription(?string $description, $parameters = [ ], ?string $transDomain = null): PageMetadata
+    public function setDescription(?string $description, array $parameters = [ ], ?string $transDomain = null): PageMetadata
     {
         return $this->setMetaDescription($description, $parameters, $transDomain)->setOgDescription($description, $parameters, $transDomain);
     }

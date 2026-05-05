@@ -59,12 +59,12 @@ class PageMetadataExtension extends AbstractExtension
         return $this->twig->render('@DvPageMetadata/meta.html.twig');
     }
 
-    public function metaDescription(string $default = null): ?string
+    public function metaDescription(?string $default = null): ?string
     {
         return $this->page->getMetaDescription() ?: $default;
     }
 
-    public function metaKeywords(string $default = null): ?string
+    public function metaKeywords(?string $default = null): ?string
     {
         return $this->page->getMetaKeywords() ?: $default;
     }
