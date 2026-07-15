@@ -45,6 +45,20 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                         scalarNode("twitter_site")->defaultNull()->end()->
                     end()->
                 end()->
+                arrayNode('structured_data')->
+                    addDefaultsIfNotSet()->
+                    children()->
+                        booleanNode('enabled')->defaultTrue()->end()->
+                        booleanNode('breadcrumbs')->defaultTrue()->end()->
+                        variableNode('nodes')->
+                            defaultValue([ ])->
+                            validate()->
+                                ifTrue(static fn ($value): bool => !is_array($value))->
+                                thenInvalid('Structured data nodes must be an array.')->
+                            end()->
+                        end()->
+                    end()->
+                end()->
             end()
         ;
 

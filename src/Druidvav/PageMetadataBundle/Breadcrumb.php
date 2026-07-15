@@ -23,18 +23,18 @@ class Breadcrumb
         $this->transDomain = $domain;
     }
 
-    public function setRoute(string $route, array $parameters = [ ], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): Breadcrumb
+    public function setRoute(string $route, array $parameters = [ ], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): self
     {
         return $this->setUrl($this->router->generate($route, $parameters, $referenceType));
     }
 
-    public function setUrl(string $url): Breadcrumb
+    public function setUrl(string $url): self
     {
         $this->url = $url;
         return $this;
     }
 
-    public function setRawText(string $text): Breadcrumb
+    public function setRawText(string $text): self
     {
         $this->text = $text;
         return $this;

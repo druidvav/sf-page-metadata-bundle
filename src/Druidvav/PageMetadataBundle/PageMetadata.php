@@ -1,7 +1,11 @@
-<?php
+<?php /** @noinspection PhpUnused */
+
 namespace Druidvav\PageMetadataBundle;
 
+use DateTimeInterface;
 use InvalidArgumentException;
+use LogicException;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -12,17 +16,18 @@ class PageMetadata
 
     private RouterInterface $router;
     private TranslatorInterface $translator;
+    private ?RequestStack $requestStack;
 
     private ?string $titleDelimiter = null;
 
-    const DEFAULT_NAMESPACE = "default";
+    public const DEFAULT_NAMESPACE = "default";
     private array $breadcrumbs = [
         self::DEFAULT_NAMESPACE => [ ]
     ];
 
-    const MODE_SET = 'set';
-    const MODE_PREPEND = 'prepend';
-    const MODE_APPEND = 'append';
+    public const MODE_SET = 'set';
+    public const MODE_PREPEND = 'prepend';
+    public const MODE_APPEND = 'append';
 
     private array $pageTitle = [ ];
     private ?string $metaDescription = null;
@@ -41,10 +46,14 @@ class PageMetadata
     private ?string $ogTwitterSite = null;
     private ?string $ogTwitterCard = null;
 
-    public function __construct(RouterInterface $router, TranslatorInterface $translator)
+    /** @var array<string, array<int|string, mixed>> */
+    private array $structuredData = [ ];
+
+    public function __construct(RouterInterface $router, TranslatorInterface $translator, ?RequestStack $requestStack = null)
     {
         $this->router = $router;
         $this->translator = $translator;
+        $this->requestStack = $requestStack;
     }
 
     public function setTransDomain(?string $domain): void
@@ -57,17 +66,21 @@ class PageMetadata
         $this->titleDelimiter = $titleDelimiter;
     }
 
-    protected function addBreadcrumb(Breadcrumb $bc): PageMetadata
+    protected function addBreadcrumb(Breadcrumb $bc): self
     {
         return $this->addBreadcrumbToNs(self::DEFAULT_NAMESPACE, $bc);
     }
 
-    protected function addBreadcrumbToNs(string $namespace, Breadcrumb $bc): PageMetadata
+    protected function addBreadcrumbToNs(string $namespace, Breadcrumb $bc): self
     {
         $this->breadcrumbs[$namespace][] = $bc;
         return $this;
     }
 
+    /**
+     * @param string $namespace
+     * @return Breadcrumb[]
+     */
     public function getNsBreadcrumbs(string $namespace = self::DEFAULT_NAMESPACE): array
     {
         if (!isset($this->breadcrumbs[$namespace])) {
@@ -78,7 +91,7 @@ class PageMetadata
         return $this->breadcrumbs[$namespace];
     }
 
-    public function addRouteItem($id, string $route, array $parameters = [ ], ?int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): PageMetadata
+    public function addRouteItem($id, string $route, array $parameters = [ ], ?int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH, array $translationParameters = [ ]): self
     {
         if ($referenceType === null) {
             $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH;
@@ -92,13 +105,14 @@ class PageMetadata
         return $this;
     }
 
-    public function setTitle($text, array $parameters = [ ]): PageMetadata
+    public function setTitle($text, array $parameters = [ ]): self
     {
         return $this->addPageTitle($text, $parameters, self::MODE_SET)->addOgTitle($text, $parameters, self::MODE_SET);
     }
 
-    public function setTitleAutotext($title, array $parameters = [ ], ?string $autotextId = null): PageMetadata
+    public function setTitleAutotext($title, array $parameters = [ ], ?string $autotextId = null): self
     {
+        $this->ensureAutotextAvailable();
         $title = $this->transIfId($title, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
         $title = \TextGenerator\TextGenerator::factory(' ' . $title, $textGeneratorOptions)->generate();
@@ -106,27 +120,27 @@ class PageMetadata
         return $this->addPageTitle($title, $parameters, self::MODE_SET)->addOgTitle($title, $parameters, self::MODE_SET);
     }
 
-    public function addTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    public function addTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): self
     {
         return $this->addPageTitle($text, $parameters, $mode)->addOgTitle($text, $parameters, $mode);
     }
 
-    public function setImage(?string $ogImage): PageMetadata
+    public function setImage(?string $ogImage): self
     {
         return $this->setOgImage($ogImage)->setOgTwitterImage($ogImage);
     }
 
-    public function setDescription(?string $description, array $parameters = [ ], ?string $transDomain = null): PageMetadata
+    public function setDescription(?string $description, array $parameters = [ ], ?string $transDomain = null): self
     {
         return $this->setMetaDescription($description, $parameters, $transDomain)->setOgDescription($description, $parameters, $transDomain);
     }
 
-    public function setPageTitle($text, array $parameters = [ ]): PageMetadata
+    public function setPageTitle($text, array $parameters = [ ]): self
     {
         return $this->addPageTitle($text, $parameters, self::MODE_SET);
     }
 
-    public function addPageTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    public function addPageTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): self
     {
         $translated = $this->transIfId($text, $parameters, $this->transDomain);
         switch ($mode) {
@@ -145,18 +159,19 @@ class PageMetadata
 
     public function getPageTitleAsString(): string
     {
-        return implode($this->titleDelimiter, $this->pageTitle);
+        return implode($this->titleDelimiter ?? '', $this->pageTitle);
     }
 
-    public function setMetaDescription($metaDescription, array $parameters = [ ], ?string $transDomain = null): PageMetadata
+    public function setMetaDescription($metaDescription, array $parameters = [ ], ?string $transDomain = null): self
     {
         $metaDescription = $this->transIfId($metaDescription, $parameters, $transDomain ?: $this->transDomain);
         $this->metaDescription = $metaDescription;
         return $this;
     }
 
-    public function setMetaDescriptionAutotext($metaDescription, array $parameters = [ ], ?string $autotextId = null): PageMetadata
+    public function setMetaDescriptionAutotext($metaDescription, array $parameters = [ ], ?string $autotextId = null): self
     {
+        $this->ensureAutotextAvailable();
         $metaDescription = $this->transIfId($metaDescription, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
         $metaDescription = \TextGenerator\TextGenerator::factory(' ' . $metaDescription, $textGeneratorOptions)->generate();
@@ -170,7 +185,7 @@ class PageMetadata
         return $this->metaDescription;
     }
 
-    public function setMetaKeywords($metaKeywords, array $parameters = [ ]): PageMetadata
+    public function setMetaKeywords($metaKeywords, array $parameters = [ ]): self
     {
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $metaKeywordsArray = array_map('trim', explode(',', $metaKeywords));
@@ -179,8 +194,9 @@ class PageMetadata
         return $this;
     }
 
-    public function setMetaKeywordsAutotext($metaKeywords, array $parameters = [ ], ?string $autotextId = null): PageMetadata
+    public function setMetaKeywordsAutotext($metaKeywords, array $parameters = [ ], ?string $autotextId = null): self
     {
+        $this->ensureAutotextAvailable();
         $metaKeywords = $this->transIfId($metaKeywords, $parameters, $this->transDomain);
         $textGeneratorOptions = [ \TextGenerator\Part::OPTION_GENERATE_HASH => $autotextId ];
         $this->metaKeywords = trim(\TextGenerator\TextGenerator::factory(' ' . $metaKeywords, $textGeneratorOptions)->generate());
@@ -200,12 +216,22 @@ class PageMetadata
         return $text;
     }
 
+    private function ensureAutotextAvailable(): void
+    {
+        if (!class_exists(\TextGenerator\TextGenerator::class) || !class_exists(\TextGenerator\Part::class)) {
+            throw new LogicException(
+                'Autotext metadata methods require the optional "meniam/autotext" package. '
+                . 'Install it with "composer require meniam/autotext".'
+            );
+        }
+    }
+
     public function getOgType(): ?string
     {
         return $this->ogType;
     }
 
-    public function setOgType(?string $ogType): PageMetadata
+    public function setOgType(?string $ogType): self
     {
         $this->ogType = $ogType;
         return $this;
@@ -216,7 +242,7 @@ class PageMetadata
         return $this->ogSiteName;
     }
 
-    public function setOgSiteName(?string $ogSiteName, array $parameters = [ ]): PageMetadata
+    public function setOgSiteName(?string $ogSiteName, array $parameters = [ ]): self
     {
         $this->ogSiteName = $this->transIfId($ogSiteName, $parameters, $this->transDomain);
         return $this;
@@ -227,7 +253,7 @@ class PageMetadata
         return $this->ogImage;
     }
 
-    public function setOgImage(?string $ogImage): PageMetadata
+    public function setOgImage(?string $ogImage): self
     {
         $this->ogImage = $ogImage;
         return $this;
@@ -238,7 +264,7 @@ class PageMetadata
         return $this->ogTwitterImage;
     }
 
-    public function setOgTwitterImage(?string $ogTwitterImage): PageMetadata
+    public function setOgTwitterImage(?string $ogTwitterImage): self
     {
         $this->ogTwitterImage = $ogTwitterImage;
         return $this;
@@ -249,7 +275,7 @@ class PageMetadata
         return $this->ogTwitterSite;
     }
 
-    public function setOgTwitterSite(?string $ogTwitterSite): PageMetadata
+    public function setOgTwitterSite(?string $ogTwitterSite): self
     {
         $this->ogTwitterSite = $ogTwitterSite;
         return $this;
@@ -262,15 +288,15 @@ class PageMetadata
 
     public function getOgTitleAsString(): string
     {
-        return implode($this->titleDelimiter, $this->ogTitle);
+        return implode($this->titleDelimiter ?? '', $this->ogTitle);
     }
 
-    public function setOgTitle($text, array $parameters = [ ]): PageMetadata
+    public function setOgTitle($text, array $parameters = [ ]): self
     {
         return $this->addOgTitle($text, $parameters, self::MODE_SET);
     }
 
-    public function addOgTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): PageMetadata
+    public function addOgTitle($text, array $parameters = [ ], string $mode = self::MODE_PREPEND): self
     {
         $translated = $this->transIfId($text, $parameters, $this->transDomain);
         switch ($mode) {
@@ -292,7 +318,7 @@ class PageMetadata
         return $this->ogDescription;
     }
 
-    public function setOgDescription(?string $ogDescription, array $parameters = [ ], ?string $transDomain = null): PageMetadata
+    public function setOgDescription(?string $ogDescription, array $parameters = [ ], ?string $transDomain = null): self
     {
         $this->ogDescription = $this->transIfId($ogDescription, $parameters, $transDomain ?: $this->transDomain);
         return $this;
@@ -306,7 +332,7 @@ class PageMetadata
         return $this->ogTwitterCard;
     }
 
-    public function setOgTwitterCard(?string $ogTwitterCard): PageMetadata
+    public function setOgTwitterCard(?string $ogTwitterCard): self
     {
         $this->ogTwitterCard = $ogTwitterCard;
         return $this;
@@ -317,7 +343,7 @@ class PageMetadata
         return $this->ogUrl;
     }
 
-    public function setOgUrl(?string $ogUrl): PageMetadata
+    public function setOgUrl(?string $ogUrl): self
     {
         $this->ogUrl = $ogUrl;
         return $this;
@@ -328,7 +354,7 @@ class PageMetadata
         return $this->linkCanonical;
     }
 
-    public function setLinkCanonical(?string $linkCanonical): PageMetadata
+    public function setLinkCanonical(?string $linkCanonical): self
     {
         $this->linkCanonical = $linkCanonical;
         return $this;
@@ -339,9 +365,129 @@ class PageMetadata
         return $this->linkCanonicalLang;
     }
 
-    public function setLinkCanonicalLang(?string $linkCanonicalLang): PageMetadata
+    public function setLinkCanonicalLang(?string $linkCanonicalLang): self
     {
         $this->linkCanonicalLang = $linkCanonicalLang;
         return $this;
+    }
+
+    /** @param array<int|string, mixed> $data */
+    public function setStructuredData(string $name, array $data): self
+    {
+        $name = trim($name);
+        if ($name === '') {
+            throw new InvalidArgumentException('The structured data name must not be empty.');
+        }
+
+        unset($data['@context']);
+        if ($data === [ ]) {
+            throw new InvalidArgumentException(sprintf('The structured data node "%s" must not be empty.', $name));
+        }
+
+        $this->structuredData[$name] = $this->normalizeStructuredDataValue($data, $name);
+        return $this;
+    }
+
+    public function removeStructuredData(string $name): self
+    {
+        unset($this->structuredData[$name]);
+        return $this;
+    }
+
+    public function clearStructuredData(): self
+    {
+        $this->structuredData = [ ];
+        return $this;
+    }
+
+    /** @return array<string, array<int|string, mixed>> */
+    public function getStructuredData(): array
+    {
+        return $this->structuredData;
+    }
+
+    /** @return array<int, array<int|string, mixed>> */
+    public function getStructuredDataGraph(bool $includeBreadcrumbs = true): array
+    {
+        $graph = array_values($this->structuredData);
+        if ($includeBreadcrumbs) {
+            $breadcrumbs = $this->getBreadcrumbStructuredData();
+            if ($breadcrumbs !== null) {
+                $graph[] = $breadcrumbs;
+            }
+        }
+
+        return $graph;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function getBreadcrumbStructuredData(): ?array
+    {
+        $breadcrumbs = $this->getNsBreadcrumbs();
+        if (count($breadcrumbs) < 2) {
+            return null;
+        }
+
+        $items = [ ];
+        foreach ($breadcrumbs as $position => $breadcrumb) {
+            $items[] = [
+                '@type' => 'ListItem',
+                'position' => $position + 1,
+                'name' => $breadcrumb->getText(),
+                'item' => $this->getAbsoluteUrl($breadcrumb->getUrl()),
+            ];
+        }
+
+        return [
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => $items,
+        ];
+    }
+
+    private function getAbsoluteUrl(string $url): string
+    {
+        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $url)) {
+            return $url;
+        }
+
+        $request = $this->requestStack ? $this->requestStack->getCurrentRequest() : null;
+        if ($request === null) {
+            return $url;
+        }
+
+        if (strpos($url, '//') === 0) {
+            return $request->getScheme() . ':' . $url;
+        }
+
+        return $request->getUriForPath('/' . ltrim($url, '/'));
+    }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    private function normalizeStructuredDataValue($value, string $path)
+    {
+        if ($value instanceof DateTimeInterface) {
+            return $value->format(DATE_ATOM);
+        }
+
+        if (is_array($value)) {
+            $normalized = [ ];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = $this->normalizeStructuredDataValue($item, $path . '.' . $key);
+            }
+            return $normalized;
+        }
+
+        if ($value === null || is_scalar($value)) {
+            return $value;
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'The structured data value at "%s" must be scalar, null, an array, or an instance of DateTimeInterface; %s given.',
+            $path,
+            is_object($value) ? get_class($value) : gettype($value)
+        ));
     }
 }

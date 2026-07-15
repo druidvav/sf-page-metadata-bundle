@@ -3,6 +3,7 @@ namespace Druidvav\PageMetadataBundle\DependencyInjection;
 
 use Druidvav\PageMetadataBundle\PageMetadata;
 use Druidvav\PageMetadataBundle\Twig\Extension\PageMetadataExtension;
+use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -23,6 +24,7 @@ class DvPageMetadataExtension extends Extension
         $optionDef = new Definition(PageMetadata::class);
         $optionDef->addArgument(new Reference('router'));
         $optionDef->addArgument(new Reference('translator'));
+        $optionDef->addArgument(new Reference('request_stack'));
         if (!empty($config['title']['default'])) {
             $optionDef->addMethodCall('setPageTitle', [ $config['title']['default'] ]);
         }
@@ -47,6 +49,12 @@ class DvPageMetadataExtension extends Extension
         }
         if (!empty($config['opengraph']['twitter_site'])) {
             $optionDef->addMethodCall('setOgTwitterSite', [ $config['opengraph']['twitter_site'] ]);
+        }
+        foreach ($config['structured_data']['nodes'] as $name => $node) {
+            if (!is_array($node)) {
+                throw new InvalidArgumentException(sprintf('Structured data node "%s" must be an array.', $name));
+            }
+            $optionDef->addMethodCall('setStructuredData', [ (string) $name, $node ]);
         }
         $optionDef->setPublic(true);
         $container->setDefinition(PageMetadata::class, $optionDef);

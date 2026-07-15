@@ -10,8 +10,10 @@ class PageMetadataExtension extends AbstractExtension
 {
     protected PageMetadata $page;
     protected Environment $twig;
+    /** @var array<string, mixed> */
     protected array $options;
 
+    /** @param array<string, mixed> $options */
     public function __construct(PageMetadata $page, Environment $twig, array $options)
     {
         $this->page = $page;
@@ -28,6 +30,7 @@ class PageMetadataExtension extends AbstractExtension
         return [
             new TwigFunction("page_breadcrumbs", [ $this, "renderBreadcrumbs" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_meta", [ $this, "renderMeta" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_structured_data", [ $this, "renderStructuredData" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_title", [ $this->page, "getPageTitleAsString" ]),
             new TwigFunction("page_description", [ $this, "metaDescription" ]),
             new TwigFunction("page_keywords", [ $this, "metaKeywords" ]),
@@ -57,6 +60,29 @@ class PageMetadataExtension extends AbstractExtension
     public function renderMeta(): string
     {
         return $this->twig->render('@DvPageMetadata/meta.html.twig');
+    }
+
+    public function renderStructuredData(): string
+    {
+        $options = $this->options['structured_data'] ?? [
+            'enabled' => true,
+            'breadcrumbs' => true,
+        ];
+        if (!($options['enabled'] ?? true)) {
+            return '';
+        }
+
+        $graph = $this->page->getStructuredDataGraph($options['breadcrumbs'] ?? true);
+        if ($graph === [ ]) {
+            return '';
+        }
+
+        $json = json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => $graph,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+
+        return $this->twig->render('@DvPageMetadata/structured_data.html.twig', [ 'json' => $json ]);
     }
 
     public function metaDescription(?string $default = null): ?string
