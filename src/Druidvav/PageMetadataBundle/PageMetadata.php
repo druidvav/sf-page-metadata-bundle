@@ -253,7 +253,7 @@ class PageMetadata
 
     public function setOgImage(?string $ogImage): self
     {
-        $this->ogImage = $ogImage;
+        $this->ogImage = $ogImage === null ? null : $this->getAbsoluteUrl($ogImage);
         return $this;
     }
 
@@ -264,7 +264,7 @@ class PageMetadata
 
     public function setOgTwitterImage(?string $ogTwitterImage): self
     {
-        $this->ogTwitterImage = $ogTwitterImage;
+        $this->ogTwitterImage = $ogTwitterImage === null ? null : $this->getAbsoluteUrl($ogTwitterImage);
         return $this;
     }
 
@@ -343,7 +343,7 @@ class PageMetadata
 
     public function setOgUrl(?string $ogUrl): self
     {
-        $this->ogUrl = $ogUrl;
+        $this->ogUrl = $ogUrl === null ? null : $this->getAbsoluteUrl($ogUrl);
         return $this;
     }
 
@@ -354,7 +354,7 @@ class PageMetadata
 
     public function setLinkCanonical(?string $linkCanonical): self
     {
-        $this->linkCanonical = $linkCanonical;
+        $this->linkCanonical = $linkCanonical === null ? null : $this->getAbsoluteUrl($linkCanonical);
         return $this;
     }
 
@@ -392,7 +392,11 @@ class PageMetadata
             throw new InvalidArgumentException('The page metadata base URL must not be empty.');
         }
 
-        $this->baseUrl = $baseUrl;
+        if (trim($baseUrl, '/') === '') {
+            throw new InvalidArgumentException('The page metadata base URL must contain more than slashes.');
+        }
+
+        $this->baseUrl = rtrim($baseUrl, '/');
         return $this;
     }
 
@@ -454,7 +458,7 @@ class PageMetadata
 
     private function getAbsoluteUrl(string $url): string
     {
-        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $url)) {
+        if (preg_match('#^[a-z][a-z0-9+.-]*:#i', $url) || str_starts_with($url, '//')) {
             return $url;
         }
 
@@ -462,7 +466,7 @@ class PageMetadata
             throw new LogicException('The page metadata base URL must be configured to make relative URLs absolute.');
         }
 
-        return $this->baseUrl . $url;
+        return $this->baseUrl . '/' . ltrim($url, '/');
     }
 
     /**
@@ -473,6 +477,10 @@ class PageMetadata
     {
         if ($value instanceof DateTimeInterface) {
             return $value->format(DATE_ATOM);
+        }
+
+        if (is_string($value) && (str_starts_with($value, '/') || str_starts_with($value, '#'))) {
+            return $this->getAbsoluteUrl($value);
         }
 
         if (is_array($value)) {

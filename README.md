@@ -60,8 +60,8 @@ dv_page_metadata:
     opengraph:
         site_name: 'Example'
         type: website
-        image: 'https://example.com/default-cover.jpg'
-        twitter_image: 'https://example.com/default-cover.jpg'
+        image: '/default-cover.jpg'
+        twitter_image: '/default-cover.jpg'
         twitter_site: '@example'
 
     breadcrumbs:
@@ -79,7 +79,7 @@ dv_page_metadata:
         nodes: { }
 ```
 
-`base_url` is the canonical site root shared by metadata features that need to turn a path into an absolute URL. It is expected without a trailing slash, for example `https://example.com`. A missing or empty value is rejected. The same value can be set at runtime with `PageMetadata::setBaseUrl()`.
+`base_url` is the canonical site root shared by metadata features that need to turn a path into an absolute URL. Values with and without a trailing slash are accepted; `PageMetadata::setBaseUrl()` strips trailing slashes before storing the value. A missing or empty value is rejected. Relative metadata paths such as `/cover.jpg` and structured-data identifiers such as `/#organization` are resolved against this URL; absolute URIs are left unchanged.
 
 The `locale` and `translation_domain` configuration keys are retained by the bundle configuration. Set the active translation domain at runtime with `PageMetadata::setTransDomain()` when translated titles, descriptions, or breadcrumb labels are required.
 
@@ -314,18 +314,18 @@ dv_page_metadata:
         nodes:
             organization:
                 '@type': Organization
-                '@id': 'https://example.com/#organization'
+                '@id': '/#organization'
                 name: Example
-                url: 'https://example.com/'
-                logo: 'https://example.com/logo.jpg'
+                url: '/'
+                logo: '/logo.jpg'
 
             website:
                 '@type': WebSite
-                '@id': 'https://example.com/#website'
+                '@id': '/#website'
                 name: Example
-                url: 'https://example.com/'
+                url: '/'
                 publisher:
-                    '@id': 'https://example.com/#organization'
+                    '@id': '/#organization'
                 inLanguage: [en, fr]
 ```
 
@@ -367,7 +367,7 @@ $pageMetadata->setStructuredData('event', [
 ]);
 ```
 
-Structured values may contain strings, integers, floats, booleans, `null`, nested arrays, and `DateTimeInterface` instances. Unsupported objects or resources cause an `InvalidArgumentException` whose message includes the property path.
+Structured values may contain strings, integers, floats, booleans, `null`, nested arrays, and `DateTimeInterface` instances. Strings starting with `/` or `#` are resolved against `base_url`; absolute URIs and other strings are preserved. Unsupported objects or resources cause an `InvalidArgumentException` whose message includes the property path.
 
 ### Removing and reading nodes
 

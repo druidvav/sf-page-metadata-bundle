@@ -85,6 +85,38 @@ class PageMetadataTest extends TestCase
 
         $page = $this->createPageMetadata($router);
         $page
+            ->setBaseUrl('https://airquality.am/')
+            ->addRouteItem('Home', 'root')
+            ->addRouteItem('Blog', 'blog');
+
+        self::assertSame([
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => 'https://airquality.am/',
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Blog',
+                    'item' => 'https://airquality.am/en/blog',
+                ],
+            ],
+        ], $page->getStructuredDataGraph()[0]);
+    }
+
+    public function testItBuildsUrlsWhenBaseUrlHasNoTrailingSlash(): void
+    {
+        $router = $this->createMock(RouterInterface::class);
+        $router->expects(self::exactly(2))
+            ->method('generate')
+            ->willReturnOnConsecutiveCalls('/', '/en/blog');
+
+        $page = $this->createPageMetadata($router);
+        $page
             ->setBaseUrl('https://airquality.am')
             ->addRouteItem('Home', 'root')
             ->addRouteItem('Blog', 'blog');
@@ -106,6 +138,49 @@ class PageMetadataTest extends TestCase
                 ],
             ],
         ], $page->getStructuredDataGraph()[0]);
+    }
+
+    public function testItResolvesRelativeMetadataUrlsAgainstBaseUrl(): void
+    {
+        $page = $this->createPageMetadata();
+        $page
+            ->setBaseUrl('https://airquality.am/')
+            ->setImage('/img/logo-og.jpg')
+            ->setOgUrl('/en/')
+            ->setLinkCanonical('/en/')
+            ->setStructuredData('organization', [
+                '@type' => 'Organization',
+                '@id' => '/#organization',
+                'name' => 'AirQuality.am',
+                'url' => '/',
+                'logo' => '/img/logo-og.jpg',
+                'sameAs' => [ 'https://t.me/armeniaAirQuality' ],
+            ]);
+
+        self::assertSame('https://airquality.am/img/logo-og.jpg', $page->getOgImage());
+        self::assertSame('https://airquality.am/img/logo-og.jpg', $page->getOgTwitterImage());
+        self::assertSame('https://airquality.am/en/', $page->getOgUrl());
+        self::assertSame('https://airquality.am/en/', $page->getLinkCanonical());
+        self::assertSame([
+            '@type' => 'Organization',
+            '@id' => 'https://airquality.am/#organization',
+            'name' => 'AirQuality.am',
+            'url' => 'https://airquality.am/',
+            'logo' => 'https://airquality.am/img/logo-og.jpg',
+            'sameAs' => [ 'https://t.me/armeniaAirQuality' ],
+        ], $page->getStructuredData()['organization']);
+    }
+
+    public function testItPreservesAbsoluteAndSchemeRelativeMetadataUris(): void
+    {
+        $page = $this->createPageMetadata();
+        $page
+            ->setBaseUrl('https://airquality.am')
+            ->setOgImage('https://cdn.example.com/image.jpg')
+            ->setOgTwitterImage('//cdn.example.com/twitter.jpg');
+
+        self::assertSame('https://cdn.example.com/image.jpg', $page->getOgImage());
+        self::assertSame('//cdn.example.com/twitter.jpg', $page->getOgTwitterImage());
     }
 
     public function testItOmitsBreadcrumbDataForFewerThanTwoItems(): void
@@ -135,6 +210,14 @@ class PageMetadataTest extends TestCase
         $this->expectExceptionMessage('base URL must not be empty');
 
         $this->createPageMetadata()->setBaseUrl('');
+    }
+
+    public function testItRejectsABaseUrlContainingOnlySlashes(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('must contain more than slashes');
+
+        $this->createPageMetadata()->setBaseUrl('/');
     }
 
     public function testAutotextMethodsExplainHowToInstallTheOptionalDependency(): void
