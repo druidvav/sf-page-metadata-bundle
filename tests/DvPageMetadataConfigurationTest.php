@@ -10,8 +10,11 @@ class DvPageMetadataConfigurationTest extends TestCase
 {
     public function testStructuredDataDefaults(): void
     {
-        $config = (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [ [ ] ]);
+        $config = (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [
+            [ 'base_url' => 'https://example.com' ],
+        ]);
 
+        self::assertSame('https://example.com', $config['base_url']);
         self::assertSame([
             'enabled' => true,
             'breadcrumbs' => true,
@@ -30,9 +33,28 @@ class DvPageMetadataConfigurationTest extends TestCase
         ];
 
         $config = (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [
-            [ 'structured_data' => [ 'nodes' => $nodes ] ],
+            [
+                'base_url' => 'https://example.com',
+                'structured_data' => [ 'nodes' => $nodes ],
+            ],
         ]);
 
         self::assertSame($nodes, $config['structured_data']['nodes']);
+    }
+
+    public function testItRejectsAnEmptyBaseUrl(): void
+    {
+        $this->expectException(\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException::class);
+
+        (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [
+            [ 'base_url' => '' ],
+        ]);
+    }
+
+    public function testItRequiresABaseUrl(): void
+    {
+        $this->expectException(\Symfony\Component\Config\Definition\Exception\InvalidConfigurationException::class);
+
+        (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [ [ ] ]);
     }
 }

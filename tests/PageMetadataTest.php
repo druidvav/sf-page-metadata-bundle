@@ -9,8 +9,6 @@ use Druidvav\PageMetadataBundle\PageMetadata;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -85,10 +83,9 @@ class PageMetadataTest extends TestCase
             ->method('generate')
             ->willReturnOnConsecutiveCalls('/', '/en/blog');
 
-        $requests = new RequestStack();
-        $requests->push(Request::create('https://airquality.am/en/blog/post'));
-        $page = $this->createPageMetadata($router, $requests);
+        $page = $this->createPageMetadata($router);
         $page
+            ->setBaseUrl('https://airquality.am')
             ->addRouteItem('Home', 'root')
             ->addRouteItem('Blog', 'blog');
 
@@ -117,6 +114,29 @@ class PageMetadataTest extends TestCase
         self::assertSame([ ], $page->getStructuredDataGraph());
     }
 
+    public function testItRequiresABaseUrlToMakeBreadcrumbUrlsAbsolute(): void
+    {
+        $router = $this->createMock(RouterInterface::class);
+        $router->method('generate')->willReturnOnConsecutiveCalls('/', '/en/blog');
+
+        $page = $this->createPageMetadata($router);
+        $page
+            ->addRouteItem('Home', 'root')
+            ->addRouteItem('Blog', 'blog');
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('base URL must be configured');
+        $page->getStructuredDataGraph();
+    }
+
+    public function testItRejectsAnEmptyBaseUrl(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('base URL must not be empty');
+
+        $this->createPageMetadata()->setBaseUrl('');
+    }
+
     public function testAutotextMethodsExplainHowToInstallTheOptionalDependency(): void
     {
         if (class_exists(\TextGenerator\TextGenerator::class) && class_exists(\TextGenerator\Part::class)) {
@@ -139,12 +159,12 @@ class PageMetadataTest extends TestCase
         }
     }
 
-    private function createPageMetadata(?RouterInterface $router = null, ?RequestStack $requestStack = null): PageMetadata
+    private function createPageMetadata(?RouterInterface $router = null): PageMetadata
     {
         $router = $router ?: $this->createMock(RouterInterface::class);
         $translator = $this->createMock(TranslatorInterface::class);
         $translator->method('trans')->willReturnCallback(static fn ($id) => $id);
 
-        return new PageMetadata($router, $translator, $requestStack);
+        return new PageMetadata($router, $translator);
     }
 }

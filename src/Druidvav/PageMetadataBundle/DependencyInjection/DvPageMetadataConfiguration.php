@@ -11,6 +11,7 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder("dv_page_metadata");
         $treeBuilder->getRootNode()->
             children()->
+                scalarNode('base_url')->isRequired()->cannotBeEmpty()->end()->
                 arrayNode('breadcrumbs')->
                     children()->
                         scalarNode("listId")->defaultValue("")->end()->

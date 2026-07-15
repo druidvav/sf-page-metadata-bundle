@@ -5,7 +5,6 @@ namespace Druidvav\PageMetadataBundle;
 use DateTimeInterface;
 use InvalidArgumentException;
 use LogicException;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -16,7 +15,6 @@ class PageMetadata
 
     private RouterInterface $router;
     private TranslatorInterface $translator;
-    private ?RequestStack $requestStack;
 
     private ?string $titleDelimiter = null;
 
@@ -48,12 +46,12 @@ class PageMetadata
 
     /** @var array<string, array<int|string, mixed>> */
     private array $structuredData = [ ];
+    private ?string $baseUrl = null;
 
-    public function __construct(RouterInterface $router, TranslatorInterface $translator, ?RequestStack $requestStack = null)
+    public function __construct(RouterInterface $router, TranslatorInterface $translator)
     {
         $this->router = $router;
         $this->translator = $translator;
-        $this->requestStack = $requestStack;
     }
 
     public function setTransDomain(?string $domain): void
@@ -388,6 +386,16 @@ class PageMetadata
         return $this;
     }
 
+    public function setBaseUrl(string $baseUrl): self
+    {
+        if ($baseUrl === '') {
+            throw new InvalidArgumentException('The page metadata base URL must not be empty.');
+        }
+
+        $this->baseUrl = $baseUrl;
+        return $this;
+    }
+
     public function removeStructuredData(string $name): self
     {
         unset($this->structuredData[$name]);
@@ -450,16 +458,11 @@ class PageMetadata
             return $url;
         }
 
-        $request = $this->requestStack ? $this->requestStack->getCurrentRequest() : null;
-        if ($request === null) {
-            return $url;
+        if ($this->baseUrl === null) {
+            throw new LogicException('The page metadata base URL must be configured to make relative URLs absolute.');
         }
 
-        if (strpos($url, '//') === 0) {
-            return $request->getScheme() . ':' . $url;
-        }
-
-        return $request->getUriForPath('/' . ltrim($url, '/'));
+        return $this->baseUrl . $url;
     }
 
     /**

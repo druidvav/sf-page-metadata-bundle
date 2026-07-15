@@ -40,11 +40,13 @@ Render the metadata in the document head and breadcrumbs where they belong in th
 
 ## Configuration
 
-All sections are optional:
+`base_url` is required. All other sections are optional:
 
 ```yaml
 # config/packages/dv_page_metadata.yaml
 dv_page_metadata:
+    base_url: '%env(DEFAULT_URI)%'
+
     title:
         default: 'Example'
         delimiter: ' - '
@@ -76,6 +78,8 @@ dv_page_metadata:
         breadcrumbs: true
         nodes: { }
 ```
+
+`base_url` is the canonical site root shared by metadata features that need to turn a path into an absolute URL. It is expected without a trailing slash, for example `https://example.com`. A missing or empty value is rejected. The same value can be set at runtime with `PageMetadata::setBaseUrl()`.
 
 The `locale` and `translation_domain` configuration keys are retained by the bundle configuration. Set the active translation domain at runtime with `PageMetadata::setTransDomain()` when translated titles, descriptions, or breadcrumb labels are required.
 
@@ -302,6 +306,8 @@ Site-wide nodes can be configured once:
 
 ```yaml
 dv_page_metadata:
+    base_url: '%env(DEFAULT_URI)%'
+
     structured_data:
         enabled: true
         breadcrumbs: true
@@ -378,7 +384,7 @@ $graphWithoutBreadcrumbs = $pageMetadata->getStructuredDataGraph(false);
 
 ### BreadcrumbList
 
-When `structured_data.breadcrumbs` is enabled and the default namespace contains at least two breadcrumbs, the bundle appends a `BreadcrumbList` node automatically. Relative breadcrumb paths are converted to absolute URLs using the current request.
+When `structured_data.breadcrumbs` is enabled and the default namespace contains at least two breadcrumbs, the bundle appends a `BreadcrumbList` node automatically. Relative breadcrumb paths use the global `base_url`; the current request is not used to determine the host.
 
 ### Rendering and escaping
 
