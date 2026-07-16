@@ -249,6 +249,29 @@ class PageMetadataTest extends TestCase
         self::assertSame('https://example.com/ru/blog?page=3', $page->getLinkCanonical());
     }
 
+    public function testItDoesNotLocalizeARouteWithoutALocaleParameter(): void
+    {
+        $request = Request::create('/sitemap.xml');
+        $request->setLocale('en');
+        $request->attributes->set('_route', 'sitemap');
+        $request->attributes->set('_route_params', [ ]);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects(self::once())
+            ->method('generate')
+            ->with('sitemap', [ ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/sitemap.xml');
+
+        $page = $this->createPageMetadata($router);
+        $page
+            ->setCanonicalFromRequest($request)
+            ->setCanonicalAlternateLocales([ 'hy', 'ru', 'en' ]);
+
+        self::assertSame('https://example.com/sitemap.xml', $page->getLinkCanonical());
+        self::assertSame([ ], $page->getCanonicalAlternates());
+    }
+
     public function testItOmitsBreadcrumbDataForFewerThanTwoItems(): void
     {
         $page = $this->createPageMetadata();

@@ -403,6 +403,11 @@ class PageMetadata
             return [ ];
         }
 
+        $routeParameters = $this->canonicalRequest->attributes->get('_route_params', [ ]);
+        if (!is_array($routeParameters) || !array_key_exists('_locale', $routeParameters)) {
+            return [ ];
+        }
+
         $alternates = [ ];
         foreach ($this->canonicalAlternateLocales as $locale) {
             $alternates[$locale] = $this->generateCanonicalUrl($locale);
@@ -442,7 +447,9 @@ class PageMetadata
         if (!is_array($parameters)) {
             $parameters = [ ];
         }
-        $parameters['_locale'] = $locale;
+        if (array_key_exists('_locale', $parameters)) {
+            $parameters['_locale'] = $locale;
+        }
 
         $query = $request->query->all();
         foreach ($this->canonicalParameters as $name) {
