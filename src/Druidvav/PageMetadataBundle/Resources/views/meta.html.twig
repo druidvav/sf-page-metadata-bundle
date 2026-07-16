@@ -5,9 +5,13 @@
 {% if page_keywords() %}
     <meta name="keywords" content="{{ page_keywords() }}" />
 {% endif %}
-{% if page_link_canonical() %}
-    <link rel="canonical"{% if page_link_canonical_lang() %} hreflang="{{ page_link_canonical_lang() }}"{% endif%} href="{{ page_link_canonical() }}" />
+{% set canonical = page_link_canonical() %}
+{% if canonical %}
+    <link rel="canonical"{% if page_link_canonical_lang() %} hreflang="{{ page_link_canonical_lang() }}"{% endif%} href="{{ canonical }}" />
 {% endif %}
+{% for locale, url in page_link_canonical_alternates() %}
+    <link rel="alternate" hreflang="{{ locale }}" href="{{ url }}" />
+{% endfor %}
 {% if page_og_title() %}
     <meta property="og:title" content="{{ page_og_title() }}" />
     <meta name="twitter:title" content="{{ page_og_title() }}" />

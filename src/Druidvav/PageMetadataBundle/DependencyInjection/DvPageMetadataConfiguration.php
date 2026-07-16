@@ -12,6 +12,15 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
         $treeBuilder->getRootNode()->
             children()->
                 scalarNode('base_url')->isRequired()->cannotBeEmpty()->end()->
+                arrayNode('canonical')->
+                    addDefaultsIfNotSet()->
+                    children()->
+                        arrayNode('alternate_locales')->
+                            scalarPrototype()->cannotBeEmpty()->end()->
+                            defaultValue([ ])->
+                        end()->
+                    end()->
+                end()->
                 arrayNode('breadcrumbs')->
                     children()->
                         scalarNode("listId")->defaultValue("")->end()->

@@ -9,6 +9,8 @@ use Druidvav\PageMetadataBundle\PageMetadata;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -181,6 +183,70 @@ class PageMetadataTest extends TestCase
 
         self::assertSame('https://cdn.example.com/image.jpg', $page->getOgImage());
         self::assertSame('//cdn.example.com/twitter.jpg', $page->getOgTwitterImage());
+    }
+
+    public function testItGeneratesCanonicalAndAlternatesFromTheStoredRequest(): void
+    {
+        $request = Request::create('/ru/blog/example?page=2&utm_source=newsletter');
+        $request->setLocale('ru');
+        $request->attributes->set('_route', 'blog-post');
+        $request->attributes->set('_route_params', [
+            '_locale' => 'ru',
+            'slug' => 'example',
+        ]);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects(self::exactly(4))
+            ->method('generate')
+            ->with(
+                'blog-post',
+                self::callback(static fn (array $parameters): bool => $parameters === [
+                    '_locale' => $parameters['_locale'],
+                    'slug' => 'example',
+                    'page' => '2',
+                ] && in_array($parameters['_locale'], [ 'ru', 'hy', 'en' ], true)),
+                UrlGeneratorInterface::ABSOLUTE_URL
+            )
+            ->willReturnCallback(static fn (string $route, array $parameters): string => sprintf(
+                'https://example.com/%s/blog/example?page=2',
+                $parameters['_locale']
+            ));
+
+        $page = $this->createPageMetadata($router);
+        $page
+            ->setCanonicalFromRequest($request)
+            ->addCanonicalParameter('page')
+            ->setCanonicalAlternateLocales([ 'hy', 'ru', 'en' ]);
+
+        self::assertSame('ru', $page->getLinkCanonicalLang());
+        self::assertSame('https://example.com/ru/blog/example?page=2', $page->getLinkCanonical());
+        self::assertSame([
+            'hy' => 'https://example.com/hy/blog/example?page=2',
+            'ru' => 'https://example.com/ru/blog/example?page=2',
+            'en' => 'https://example.com/en/blog/example?page=2',
+        ], $page->getCanonicalAlternates());
+    }
+
+    public function testCanonicalParameterCanBeAddedAfterTheRequest(): void
+    {
+        $request = Request::create('/ru/blog?page=3');
+        $request->setLocale('ru');
+        $request->attributes->set('_route', 'blog-index');
+        $request->attributes->set('_route_params', [ '_locale' => 'ru' ]);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects(self::once())
+            ->method('generate')
+            ->with('blog-index', [ '_locale' => 'ru', 'page' => '3' ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/ru/blog?page=3');
+
+        $page = $this->createPageMetadata($router);
+        $page->setCanonicalFromRequest($request);
+        $page->addCanonicalParameter('page');
+
+        self::assertSame('https://example.com/ru/blog?page=3', $page->getLinkCanonical());
     }
 
     public function testItOmitsBreadcrumbDataForFewerThanTwoItems(): void

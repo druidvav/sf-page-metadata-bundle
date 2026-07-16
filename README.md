@@ -47,6 +47,9 @@ Render the metadata in the document head and breadcrumbs where they belong in th
 dv_page_metadata:
     base_url: '%env(DEFAULT_URI)%'
 
+    canonical:
+        alternate_locales: [hy, ru, en]
+
     title:
         default: 'Example'
         delimiter: ' - '
@@ -83,7 +86,7 @@ dv_page_metadata:
 
 The `locale` and `translation_domain` configuration keys are retained by the bundle configuration. Set the active translation domain at runtime with `PageMetadata::setTransDomain()` when translated titles, descriptions, or breadcrumb labels are required.
 
-Canonical URL, canonical language, Open Graph URL, and Twitter card type have no configuration defaults and are normally set per request through the PHP API.
+Canonical URL, canonical language, Open Graph URL, and Twitter card type have no configuration defaults and are normally set per request through the PHP API. `canonical.alternate_locales` controls which locale variants are rendered as `rel="alternate"` links when canonical metadata is initialized from a request.
 
 ## Using `PageMetadata`
 
@@ -217,6 +220,16 @@ $pageMetadata
 ```
 
 The values are available in Twig through `page_link_canonical()`, `page_link_canonical_lang()`, and `page_og_url()`.
+
+Canonical and alternate links can be generated from the same request. Route parameters are always retained; query parameters are excluded unless explicitly marked as canonical:
+
+```php
+$pageMetadata
+    ->setCanonicalFromRequest($request)
+    ->addCanonicalParameter('page');
+```
+
+The request locale is used for the canonical link. Locales configured under `canonical.alternate_locales` are generated from the same route and canonical parameters.
 
 ## Open Graph and Twitter
 
@@ -431,11 +444,13 @@ When the optional package is not installed, calling any Autotext method throws a
 | `page_meta()` | Complete metadata HTML, including structured data |
 | `page_breadcrumbs(options = {})` | Rendered breadcrumb HTML |
 | `page_structured_data()` | JSON-LD script for custom metadata templates |
+| `page_locale_url(request, locale)` | Absolute request-route URL in another locale, preserving all query parameters |
 | `page_title()` | Composed HTML page title |
 | `page_description(default = null)` | Meta description or supplied default |
 | `page_keywords(default = null)` | Meta keywords or supplied default |
 | `page_link_canonical()` | Canonical URL |
 | `page_link_canonical_lang()` | Canonical language value |
+| `page_link_canonical_alternates()` | Locale-to-URL map generated from canonical request metadata |
 | `page_og_type()` | Open Graph type |
 | `page_og_url()` | Open Graph URL |
 | `page_og_site_name()` | Open Graph site name |

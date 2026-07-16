@@ -15,11 +15,26 @@ class DvPageMetadataConfigurationTest extends TestCase
         ]);
 
         self::assertSame('https://example.com', $config['base_url']);
+        self::assertSame([ ], $config['canonical']['alternate_locales']);
         self::assertSame([
             'enabled' => true,
             'breadcrumbs' => true,
             'nodes' => [ ],
         ], $config['structured_data']);
+    }
+
+    public function testItPreservesCanonicalAlternateLocales(): void
+    {
+        $config = (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [
+            [
+                'base_url' => 'https://example.com',
+                'canonical' => [
+                    'alternate_locales' => [ 'hy', 'ru', 'en' ],
+                ],
+            ],
+        ]);
+
+        self::assertSame([ 'hy', 'ru', 'en' ], $config['canonical']['alternate_locales']);
     }
 
     public function testItPreservesConfiguredNodes(): void

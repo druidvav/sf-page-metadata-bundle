@@ -25,6 +25,7 @@ class DvPageMetadataExtension extends Extension
         $optionDef->addArgument(new Reference('router'));
         $optionDef->addArgument(new Reference('translator'));
         $optionDef->addMethodCall('setBaseUrl', [ $config['base_url'] ]);
+        $optionDef->addMethodCall('setCanonicalAlternateLocales', [ $config['canonical']['alternate_locales'] ]);
         if (!empty($config['title']['default'])) {
             $optionDef->addMethodCall('setPageTitle', [ $config['title']['default'] ]);
         }
@@ -64,6 +65,7 @@ class DvPageMetadataExtension extends Extension
         $twigDef->addArgument(new Reference('page_metadata'));
         $twigDef->addArgument(new Reference('twig'));
         $twigDef->addArgument($config);
+        $twigDef->addArgument(new Reference('router'));
         $twigDef->addTag('twig.extension');
         $container->setDefinition(PageMetadataExtension::class, $twigDef);
     }

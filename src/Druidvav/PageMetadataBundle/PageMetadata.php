@@ -5,6 +5,7 @@ namespace Druidvav\PageMetadataBundle;
 use DateTimeInterface;
 use InvalidArgumentException;
 use LogicException;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -33,6 +34,11 @@ class PageMetadata
 
     private ?string $linkCanonical = null;
     private ?string $linkCanonicalLang = null;
+    private ?Request $canonicalRequest = null;
+    /** @var string[] */
+    private array $canonicalParameters = [ ];
+    /** @var string[] */
+    private array $canonicalAlternateLocales = [ ];
 
     private ?string $ogType = null;
     private ?string $ogSiteName = null;
@@ -349,17 +355,68 @@ class PageMetadata
 
     public function getLinkCanonical(): ?string
     {
+        if ($this->canonicalRequest !== null) {
+            return $this->generateCanonicalUrl($this->canonicalRequest->getLocale());
+        }
+
         return $this->linkCanonical;
     }
 
     public function setLinkCanonical(?string $linkCanonical): self
     {
+        $this->canonicalRequest = null;
         $this->linkCanonical = $linkCanonical === null ? null : $this->getAbsoluteUrl($linkCanonical);
         return $this;
     }
 
+    public function setCanonicalFromRequest(Request $request): self
+    {
+        $this->canonicalRequest = $request;
+        $this->linkCanonical = null;
+        return $this;
+    }
+
+    public function addCanonicalParameter(string $name): self
+    {
+        $name = trim($name);
+        if ($name === '') {
+            throw new InvalidArgumentException('The canonical parameter name must not be empty.');
+        }
+
+        if (!in_array($name, $this->canonicalParameters, true)) {
+            $this->canonicalParameters[] = $name;
+        }
+        return $this;
+    }
+
+    /** @param string[] $locales */
+    public function setCanonicalAlternateLocales(array $locales): self
+    {
+        $this->canonicalAlternateLocales = array_values(array_unique($locales));
+        return $this;
+    }
+
+    /** @return array<string, string> */
+    public function getCanonicalAlternates(): array
+    {
+        if ($this->canonicalRequest === null) {
+            return [ ];
+        }
+
+        $alternates = [ ];
+        foreach ($this->canonicalAlternateLocales as $locale) {
+            $alternates[$locale] = $this->generateCanonicalUrl($locale);
+        }
+
+        return $alternates;
+    }
+
     public function getLinkCanonicalLang(): ?string
     {
+        if ($this->canonicalRequest !== null) {
+            return $this->canonicalRequest->getLocale();
+        }
+
         return $this->linkCanonicalLang;
     }
 
@@ -367,6 +424,34 @@ class PageMetadata
     {
         $this->linkCanonicalLang = $linkCanonicalLang;
         return $this;
+    }
+
+    private function generateCanonicalUrl(string $locale): string
+    {
+        $request = $this->canonicalRequest;
+        if ($request === null) {
+            throw new LogicException('A canonical request is required to generate a canonical URL.');
+        }
+
+        $route = $request->attributes->get('_route');
+        if (!is_string($route) || $route === '') {
+            throw new LogicException('A route is required to generate a canonical URL.');
+        }
+
+        $parameters = $request->attributes->get('_route_params', [ ]);
+        if (!is_array($parameters)) {
+            $parameters = [ ];
+        }
+        $parameters['_locale'] = $locale;
+
+        $query = $request->query->all();
+        foreach ($this->canonicalParameters as $name) {
+            if (array_key_exists($name, $query)) {
+                $parameters[$name] = $query[$name];
+            }
+        }
+
+        return $this->router->generate($route, $parameters, UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     /** @param array<int|string, mixed> $data */

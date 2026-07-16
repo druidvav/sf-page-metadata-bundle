@@ -5,6 +5,8 @@ namespace Druidvav\PageMetadataBundle\Tests;
 use Druidvav\PageMetadataBundle\PageMetadata;
 use Druidvav\PageMetadataBundle\Twig\Extension\PageMetadataExtension;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
@@ -50,7 +52,80 @@ class PageMetadataExtensionTest extends TestCase
         self::assertSame('', $extension->renderStructuredData());
     }
 
-    private function createExtension(PageMetadata $page, bool $enabled = true): PageMetadataExtension
+    public function testItGeneratesALocalizedUrlWithAllQueryParameters(): void
+    {
+        $request = Request::create('/ru/blog/example?page=2&filter[level]=high&slug=query');
+        $request->attributes->set('_route', 'blog-post');
+        $request->attributes->set('_route_params', [
+            '_locale' => 'ru',
+            'slug' => 'example',
+        ]);
+
+        $urlGenerator = $this->createMock(UrlGeneratorInterface::class);
+        $urlGenerator
+            ->expects(self::once())
+            ->method('generate')
+            ->with('blog-post', [
+                'page' => '2',
+                'filter' => [ 'level' => 'high' ],
+                'slug' => 'example',
+                '_locale' => 'en',
+            ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/en/blog/example?page=2&filter%5Blevel%5D=high');
+
+        $extension = $this->createExtension($this->createPageMetadata(), true, $urlGenerator);
+
+        self::assertSame(
+            'https://example.com/en/blog/example?page=2&filter%5Blevel%5D=high',
+            $extension->pageLocaleUrl($request, 'en')
+        );
+    }
+
+    public function testItRendersCanonicalAlternateLinks(): void
+    {
+        $request = Request::create('/ru/blog?page=2&utm_source=newsletter');
+        $request->setLocale('ru');
+        $request->attributes->set('_route', 'blog-index');
+        $request->attributes->set('_route_params', [ '_locale' => 'ru' ]);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects(self::exactly(3))
+            ->method('generate')
+            ->willReturnCallback(static fn (string $route, array $parameters): string => sprintf(
+                'https://example.com/%s/blog?page=%s',
+                $parameters['_locale'],
+                $parameters['page']
+            ));
+
+        $page = new PageMetadata($router, $this->createMock(TranslatorInterface::class));
+        $page
+            ->setCanonicalFromRequest($request)
+            ->addCanonicalParameter('page')
+            ->setCanonicalAlternateLocales([ 'hy', 'en' ]);
+
+        $html = $this->createExtension($page)->renderMeta();
+
+        self::assertStringContainsString(
+            '<link rel="canonical" hreflang="ru" href="https://example.com/ru/blog?page=2" />',
+            $html
+        );
+        self::assertStringContainsString(
+            '<link rel="alternate" hreflang="hy" href="https://example.com/hy/blog?page=2" />',
+            $html
+        );
+        self::assertStringContainsString(
+            '<link rel="alternate" hreflang="en" href="https://example.com/en/blog?page=2" />',
+            $html
+        );
+        self::assertStringNotContainsString('utm_source', $html);
+    }
+
+    private function createExtension(
+        PageMetadata $page,
+        bool $enabled = true,
+        ?UrlGeneratorInterface $urlGenerator = null
+    ): PageMetadataExtension
     {
         $loader = new FilesystemLoader();
         $loader->addPath(dirname(__DIR__) . '/src/Druidvav/PageMetadataBundle/Resources/views', 'DvPageMetadata');
@@ -62,7 +137,7 @@ class PageMetadataExtensionTest extends TestCase
                 'breadcrumbs' => true,
                 'nodes' => [ ],
             ],
-        ]);
+        ], $urlGenerator);
         $twig->addExtension($extension);
 
         return $extension;

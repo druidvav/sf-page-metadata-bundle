@@ -2,6 +2,9 @@
 namespace Druidvav\PageMetadataBundle\Twig\Extension;
 
 use Druidvav\PageMetadataBundle\PageMetadata;
+use LogicException;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -10,15 +13,22 @@ class PageMetadataExtension extends AbstractExtension
 {
     protected PageMetadata $page;
     protected Environment $twig;
+    protected ?UrlGeneratorInterface $urlGenerator;
     /** @var array<string, mixed> */
     protected array $options;
 
     /** @param array<string, mixed> $options */
-    public function __construct(PageMetadata $page, Environment $twig, array $options)
+    public function __construct(
+        PageMetadata $page,
+        Environment $twig,
+        array $options,
+        ?UrlGeneratorInterface $urlGenerator = null
+    )
     {
         $this->page = $page;
         $this->twig = $twig;
         $this->options = $options;
+        $this->urlGenerator = $urlGenerator;
     }
 
     /**
@@ -31,11 +41,13 @@ class PageMetadataExtension extends AbstractExtension
             new TwigFunction("page_breadcrumbs", [ $this, "renderBreadcrumbs" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_meta", [ $this, "renderMeta" ], [ "is_safe" => [ "html" ] ]),
             new TwigFunction("page_structured_data", [ $this, "renderStructuredData" ], [ "is_safe" => [ "html" ] ]),
+            new TwigFunction("page_locale_url", [ $this, "pageLocaleUrl" ]),
             new TwigFunction("page_title", [ $this->page, "getPageTitleAsString" ]),
             new TwigFunction("page_description", [ $this, "metaDescription" ]),
             new TwigFunction("page_keywords", [ $this, "metaKeywords" ]),
             new TwigFunction("page_link_canonical", [ $this->page, "getLinkCanonical" ]),
             new TwigFunction("page_link_canonical_lang", [ $this->page, "getLinkCanonicalLang" ]),
+            new TwigFunction("page_link_canonical_alternates", [ $this->page, "getCanonicalAlternates" ]),
             new TwigFunction("page_og_type", [ $this->page, "getOgType" ]),
             new TwigFunction("page_og_url", [ $this->page, "getOgUrl" ]),
             new TwigFunction("page_og_site_name", [ $this->page, "getOgSiteName" ]),
@@ -46,6 +58,29 @@ class PageMetadataExtension extends AbstractExtension
             new TwigFunction("page_twitter_site", [ $this->page, "getOgTwitterSite" ]),
             new TwigFunction("page_twitter_card", [ $this->page, "getOgTwitterCard" ]),
         ];
+    }
+
+    public function pageLocaleUrl(Request $request, string $locale, int $referenceType = UrlGeneratorInterface::ABSOLUTE_URL): string
+    {
+        if ($this->urlGenerator === null) {
+            throw new LogicException('The URL generator is required to generate a localized page URL.');
+        }
+
+        $route = $request->attributes->get('_route');
+        if (!is_string($route) || $route === '') {
+            throw new LogicException('A current route is required to generate a localized page URL.');
+        }
+
+        $routeParameters = $request->attributes->get('_route_params', [ ]);
+        if (!is_array($routeParameters)) {
+            $routeParameters = [ ];
+        }
+
+        return $this->urlGenerator->generate($route, array_merge(
+            $request->query->all(),
+            $routeParameters,
+            [ '_locale' => $locale ]
+        ), $referenceType);
     }
 
     public function renderBreadcrumbs(array $options = [ ]): string
