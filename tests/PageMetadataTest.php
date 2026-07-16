@@ -272,6 +272,39 @@ class PageMetadataTest extends TestCase
         self::assertSame([ ], $page->getCanonicalAlternates());
     }
 
+    public function testOgUrlDefaultsToTheCanonicalUrl(): void
+    {
+        $request = Request::create('/ru/blog?page=2');
+        $request->setLocale('ru');
+        $request->attributes->set('_route', 'blog-index');
+        $request->attributes->set('_route_params', [ '_locale' => 'ru' ]);
+
+        $router = $this->createMock(RouterInterface::class);
+        $router
+            ->expects(self::once())
+            ->method('generate')
+            ->with('blog-index', [ '_locale' => 'ru', 'page' => '2' ], UrlGeneratorInterface::ABSOLUTE_URL)
+            ->willReturn('https://example.com/ru/blog?page=2');
+
+        $page = $this->createPageMetadata($router);
+        $page
+            ->setCanonicalFromRequest($request)
+            ->addCanonicalParameter('page');
+
+        self::assertSame('https://example.com/ru/blog?page=2', $page->getOgUrl());
+    }
+
+    public function testOgUrlCanOverrideTheCanonicalUrl(): void
+    {
+        $page = $this->createPageMetadata();
+        $page
+            ->setBaseUrl('https://example.com')
+            ->setLinkCanonical('/en/canonical')
+            ->setOgUrl('/en/shared-object');
+
+        self::assertSame('https://example.com/en/shared-object', $page->getOgUrl());
+    }
+
     public function testItOmitsBreadcrumbDataForFewerThanTwoItems(): void
     {
         $page = $this->createPageMetadata();

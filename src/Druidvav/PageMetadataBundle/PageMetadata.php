@@ -344,7 +344,7 @@ class PageMetadata
 
     public function getOgUrl(): ?string
     {
-        return $this->ogUrl;
+        return $this->ogUrl ?? $this->getLinkCanonical();
     }
 
     public function setOgUrl(?string $ogUrl): self

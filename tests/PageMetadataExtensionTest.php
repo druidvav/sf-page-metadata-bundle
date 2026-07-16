@@ -90,7 +90,7 @@ class PageMetadataExtensionTest extends TestCase
 
         $router = $this->createMock(RouterInterface::class);
         $router
-            ->expects(self::exactly(3))
+            ->expects(self::exactly(4))
             ->method('generate')
             ->willReturnCallback(static fn (string $route, array $parameters): string => sprintf(
                 'https://example.com/%s/blog?page=%s',

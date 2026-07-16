@@ -231,6 +231,8 @@ $pageMetadata
 
 The request locale is used for the canonical link. Locales configured under `canonical.alternate_locales` are generated from the same route and canonical parameters.
 
+When no explicit Open Graph URL is set, `og:url` uses the canonical URL. `setOgUrl()` remains available for pages whose Open Graph object intentionally has a different permanent URL.
+
 ## Open Graph and Twitter
 
 Convenience setters keep common values synchronized:

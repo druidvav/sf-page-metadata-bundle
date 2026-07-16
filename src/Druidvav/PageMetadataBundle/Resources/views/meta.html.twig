@@ -26,8 +26,9 @@
 {% if page_twitter_image() %}
     <meta name="twitter:image" content="{{ page_twitter_image() }}" />
 {% endif %}
-{% if page_og_url() %}
-    <meta property="og:url" content="{{ page_og_url() }}" />
+{% set ogUrl = page_og_url() %}
+{% if ogUrl %}
+    <meta property="og:url" content="{{ ogUrl }}" />
 {% endif %}
 {% if page_og_site_name() %}
     <meta property="og:type" content="{{ page_og_type() }}" />
