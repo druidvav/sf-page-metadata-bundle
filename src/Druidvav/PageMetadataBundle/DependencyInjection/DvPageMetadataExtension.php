@@ -51,6 +51,9 @@ class DvPageMetadataExtension extends Extension
         if (!empty($config['opengraph']['twitter_site'])) {
             $optionDef->addMethodCall('setOgTwitterSite', [ $config['opengraph']['twitter_site'] ]);
         }
+        if (!empty($config['opengraph']['twitter_card'])) {
+            $optionDef->addMethodCall('setOgTwitterCard', [ $config['opengraph']['twitter_card'] ]);
+        }
         foreach ($config['structured_data']['nodes'] as $name => $node) {
             if (!is_array($node)) {
                 throw new InvalidArgumentException(sprintf('Structured data node "%s" must be an array.', $name));

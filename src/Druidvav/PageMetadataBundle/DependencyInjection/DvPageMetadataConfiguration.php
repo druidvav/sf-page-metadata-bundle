@@ -1,6 +1,7 @@
 <?php
 namespace Druidvav\PageMetadataBundle\DependencyInjection;
 
+use Druidvav\PageMetadataBundle\PageMetadata;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -53,6 +54,10 @@ class DvPageMetadataConfiguration implements ConfigurationInterface
                         scalarNode("image")->defaultNull()->end()->
                         scalarNode("twitter_image")->defaultNull()->end()->
                         scalarNode("twitter_site")->defaultNull()->end()->
+                        enumNode("twitter_card")->values([
+                            PageMetadata::TWITTER_CARD_SUMMARY,
+                            PageMetadata::TWITTER_CARD_SUMMARY_LARGE_IMAGE,
+                        ])->defaultNull()->end()->
                     end()->
                 end()->
                 arrayNode('structured_data')->

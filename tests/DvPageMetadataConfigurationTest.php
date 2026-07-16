@@ -37,6 +37,18 @@ class DvPageMetadataConfigurationTest extends TestCase
         self::assertSame([ 'hy', 'ru', 'en' ], $config['canonical']['alternate_locales']);
     }
 
+    public function testItPreservesTwitterCard(): void
+    {
+        $config = (new Processor())->processConfiguration(new DvPageMetadataConfiguration(), [
+            [
+                'base_url' => 'https://example.com',
+                'opengraph' => [ 'twitter_card' => 'summary' ],
+            ],
+        ]);
+
+        self::assertSame('summary', $config['opengraph']['twitter_card']);
+    }
+
     public function testItPreservesConfiguredNodes(): void
     {
         $nodes = [

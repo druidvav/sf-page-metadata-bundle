@@ -66,6 +66,7 @@ dv_page_metadata:
         image: '/default-cover.jpg'
         twitter_image: '/default-cover.jpg'
         twitter_site: '@example'
+        twitter_card: summary
 
     breadcrumbs:
         listId: ''
