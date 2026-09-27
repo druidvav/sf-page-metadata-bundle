@@ -6,7 +6,7 @@ use Druidvav\PageMetadataBundle\Twig\Extension\PageMetadataExtension;
 use InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class DvPageMetadataExtension extends Extension
